@@ -29,17 +29,18 @@ Agents get character names from a theme. Three are included:
 
 | Role | Pokémon | Star Trek: TNG | Animal Crossing |
 |---|---|---|---|
-| Manager | bidoof | picard | nook |
-| Counselor | abra | troi | katrina |
-| Builder | dratini | laforge | cyrus |
-| Reviewer | ivysaur | worf | reese |
-| Results Analyst | furret | crusher | blathers |
-| Code Reader | eevee | data | wilbur |
-| Researcher | lapras | guinan | gulliver |
-| Docs Curator | joltik | barclay | pelly |
-| Front Desk | rotom | obrien | isabelle |
+| Manager | Bidoof | Picard | Nook |
+| Counselor | Abra | Troi | Katrina |
+| Builder | Dratini | Laforge | Cyrus |
+| Reviewer | Ivysaur | Worf | Reese |
+| Results Analyst | Furret | Crusher | Blathers |
+| Code Reader | Eevee | Data | Wilbur |
+| Researcher | Lapras | Guinan | Gulliver |
+| Docs Curator | Joltik | Barclay | Pelly |
+| Front Desk | Rotom | Obrien | Isabelle |
 
-Only names are included, no artwork. The dashboard shows initials until you
+In commands and file names, agent names are lowercase (`copilot --agent
+bidoof`). Only names are included, no artwork. The dashboard shows initials until you
 upload your own avatar images; they stay in your browser. Character names
 belong to their owners and are used here as fan labels. See
 [`themes/README.md`](themes/README.md) to switch themes or make your own.
@@ -71,6 +72,20 @@ Pick one:
 - `main`: templates only. A new office starts empty: no tasks, no runs.
 - `example`: a demo office with made-up project data and session logs, so you
   can see the dashboard populated before you set up your own.
+
+## See the example
+
+```sh
+git clone --branch example https://github.com/XinyueMa0847/copilot-office.git
+cd copilot-office
+python3 example/generate.py      # moves the demo's dates up to today
+python3 office.py dashboard --home example/demo-office --sessions example/session-state
+```
+
+Open http://127.0.0.1:8765. If that port is busy, add `--port 8766` and open
+that port instead. On a remote machine, forward the port in VS Code (Ports tab).
+See [example/README.md](https://github.com/XinyueMa0847/copilot-office/tree/example/example)
+for what the demo contains.
 
 ## Privacy
 
