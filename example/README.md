@@ -9,14 +9,15 @@ python3 example/generate.py     # refresh the demo so its dates end today
 python3 office.py dashboard --home example/demo-office --sessions example/session-state
 ```
 
-Then open http://127.0.0.1:8765.
+Then open http://127.0.0.1:8765. If that port is busy, add `--port 8766` to the
+dashboard command and open that port instead.
 
 What's here:
 
 - `demo-office/`: an office made with
   `office.py init --theme pokemon`, plus invented records:
   - `.agent-office/`: project state, decisions, tasks, staff, dashboard settings.
-  - `.github/agents/`: the eight named agents (bidoof, abra, …) rendered from
+  - `.github/agents/`: the eight named agents (Bidoof, Abra, …) rendered from
     `roles/`, with each one's binding to this project. Read these to see what
     each agent is told and how they hand work to each other.
   - `run-logs/`: four runs (one still running) with health logs and notes.
