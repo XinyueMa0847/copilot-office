@@ -19,6 +19,15 @@ together, with shared project records and a local dashboard to watch them.
   task chains (you → Manager → specialists) by day, week and month, estimated
   AI-credit use, and your experiment runs. It runs locally on 127.0.0.1.
 
+![The office floor plan: stats on top, the Manager and Counselor in private
+offices, three pods of specialists, and the Front Desk](docs/screenshots/office.png)
+
+![The Tasks tab: each of today's sessions as a chain from you to the agents
+that worked on it](docs/screenshots/tasks.png)
+
+*Screenshots from the example office (a made-up project). Avatars show
+initials until you upload your own images.*
+
 The role definitions in [`roles/`](roles) are the core of the project: what
 each role does, when the Manager delegates, how reviews and second opinions
 work, and the safety rules they share. Read them and adapt them.
