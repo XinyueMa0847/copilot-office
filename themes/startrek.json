@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "startrek",
+  "label": "Star Trek: The Next Generation",
+  "note": "Star Trek names are owned by CBS Studios / Paramount and are used only as fan labels; no artwork, affiliation, or endorsement is implied.",
+  "names": {
+    "lead": "picard",
+    "guardian": "troi",
+    "builder": "laforge",
+    "reviewer": "worf",
+    "analyst": "crusher",
+    "navigator": "data",
+    "researcher": "guinan",
+    "curator": "barclay",
+    "frontdesk": "obrien"
+  }
+}

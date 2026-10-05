@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "animalcrossing",
+  "label": "Animal Crossing",
+  "note": "Animal Crossing names are owned by Nintendo and are used only as fan labels; no artwork, affiliation, or endorsement is implied.",
+  "names": {
+    "lead": "nook",
+    "guardian": "katrina",
+    "builder": "cyrus",
+    "reviewer": "reese",
+    "analyst": "blathers",
+    "navigator": "wilbur",
+    "researcher": "gulliver",
+    "curator": "pelly",
+    "frontdesk": "isabelle"
+  }
+}

@@ -1,0 +1,1382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="color-scheme" content="light">
+  <title>Copilot Office</title>
+  <style>
+    :root { --ink:#24312e; --muted:#5d6a66; --paper:#f6f5ef; --line:#dcdfd6; --green:#285746; --white:#fffefa;
+            --wall:#cbbfa9; --floor:#efe7d8; --carpet:#f7f1e6; --desk:#d8b98a; --error:#9e2929; --warn:#8a5a00; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.45; }
+    button,input { font:inherit; color:inherit; }
+    button { cursor:pointer; }
+    :focus-visible { outline:3px solid #6b40b0; outline-offset:3px; }
+    a { color:var(--green); }
+    h1,h2,h3,p { margin:0; }
+    code,pre { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:.74rem; background:#f1efe8; border-radius:10px; padding:10px 12px; margin:8px 0 0; max-height:360px; overflow:auto; }
+    [hidden] { display:none !important; }
+    .wrap { max-width:1320px; margin:auto; padding:0 28px 40px; }
+    .muted { color:var(--muted); }
+    .small { font-size:.78rem; }
+    .error { color:var(--error); }
+    .warn { color:var(--warn); }
+
+    /* Header */
+    header { display:flex; align-items:center; gap:18px; padding:16px 0; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--paper); z-index:5; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:800; white-space:nowrap; }
+    .brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--green); color:#fff; font-size:.75rem; transform:rotate(-6deg); }
+    .tabs { display:flex; gap:4px; background:#ebe8de; padding:4px; border-radius:12px; }
+    .tab { border:0; background:none; padding:7px 16px; border-radius:9px; font-weight:700; font-size:.9rem; color:var(--muted); }
+    .tab[aria-selected="true"] { background:var(--white); color:var(--ink); box-shadow:0 1px 3px #0002; }
+    .tab.minor { font-weight:600; font-size:.8rem; }
+    .spacer { flex:1; }
+    .live { position:relative; }
+    .live > summary { list-style:none; display:flex; align-items:center; gap:7px; font-size:.78rem; color:var(--muted); padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:var(--white); }
+    .live > summary::-webkit-details-marker { display:none; }
+    .live-panel { position:absolute; right:0; top:calc(100% + 8px); width:min(360px,90vw); background:var(--white); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 12px 40px #0002; font-size:.78rem; display:grid; gap:6px; }
+    .dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:#b9bdb5; flex-shrink:0; }
+    .dot.live, .dot.working, .dot.running { background:#2f9e5b; }
+    .dot.working { box-shadow:0 0 0 0 #2f9e5b88; animation:pulse 1.6s infinite; }
+    .dot.open, .dot.stale { background:#e0a526; }
+    .dot.completed { background:#6d8fb0; }
+    .dot.error { background:var(--error); }
+    .dot.no-completion, .dot.unknown { background:transparent; border:2px solid #9aa19a; }
+    @keyframes pulse { 70% { box-shadow:0 0 0 8px #2f9e5b00; } 100% { box-shadow:0 0 0 0 #2f9e5b00; } }
+    @media (prefers-reduced-motion:reduce) { .dot.working { animation:none; } }
+
+    .btn { border:1px solid #a7b2a8; background:var(--white); border-radius:9px; padding:6px 11px; font-size:.78rem; font-weight:650; min-height:32px; }
+    .btn:hover { background:#eef2e9; }
+    .btn.primary { background:var(--green); color:#fff; border-color:var(--green); }
+    .banner { margin:16px 0 0; padding:10px 14px; border-radius:12px; background:#fbf0d6; font-size:.82rem; }
+
+    /* Stats */
+    .stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0 18px; }
+    .stat { background:var(--white); border:1px solid var(--line); border-radius:16px; position:relative; }
+    .stat > summary, .stat > .stat-head { list-style:none; padding:14px 34px 14px 16px; display:grid; gap:2px; }
+    .stat > summary::-webkit-details-marker { display:none; }
+    .stat.fold > summary::before { position:absolute; right:14px; top:16px; }
+    .stat .lbl { font-size:.95rem; font-weight:750; color:var(--ink); }
+    .stat .num { font-size:1.9rem; font-weight:800; letter-spacing:-.04em; line-height:1.15; }
+    .stat .sub { font-size:.74rem; color:var(--muted); }
+    .stat[open] { box-shadow:0 8px 30px #0001; }
+    .stat .fold-body { padding:0 16px 14px; font-size:.78rem; display:grid; gap:4px; }
+
+    /* Floor plan */
+    .floor { background:var(--floor); border-radius:26px; padding:22px; display:grid; gap:18px;
+             grid-template-columns:1fr 1fr; grid-template-areas:"lead guard" "open open" "entrance entrance";
+             background-image:linear-gradient(90deg,#0000000a 1px,transparent 1px),linear-gradient(#0000000a 1px,transparent 1px); background-size:40px 40px; }
+    .room { position:relative; background:var(--carpet); border:6px solid var(--wall); border-radius:18px; padding:16px 18px 18px; min-width:0; }
+    .room-label { position:absolute; top:-13px; left:18px; background:var(--wall); color:#4a4030; font-size:.66rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:2px 10px; border-radius:7px; }
+    .room.office { display:flex; align-items:center; justify-content:center; gap:22px; }
+    .room.office::after { content:""; position:absolute; bottom:-6px; right:36px; width:64px; height:6px; background:var(--floor); }
+    .open-plan { grid-area:open; display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:18px; }
+    .pod { display:flex; flex-direction:row; align-items:center; justify-content:center; gap:4px; padding:22px 10px 16px; }
+    .pod .seat { min-width:0; }
+    .pod .room-label { left:50%; transform:translateX(-50%); white-space:nowrap; }
+    .desk { position:relative; flex-shrink:0; width:84px; height:62px; display:flex; align-items:flex-end; justify-content:center; gap:6px; padding-bottom:24px; }
+    .desk::before { content:""; position:absolute; left:0; right:0; bottom:10px; height:9px; border-radius:3px; background:linear-gradient(#c99a68,#b07f50); box-shadow:0 2px 0 #7d5735; }
+    .desk::after { content:""; position:absolute; left:7px; right:7px; bottom:0; height:10px; border-left:4px solid #7d5735; border-right:4px solid #7d5735; }
+    .desk i { position:relative; display:block; width:28px; height:21px; border:3px solid #2f3640; border-radius:4px; background:linear-gradient(160deg,#d8efff,#8fb9d8); }
+    .desk i::after { content:""; position:absolute; left:50%; bottom:-9px; width:6px; height:6px; margin-left:-3px; background:#2f3640; }
+    .entrance { grid-area:entrance; justify-self:center; display:flex; align-items:center; gap:4px; padding:16px 14px 10px; }
+    .entrance .seat { min-width:0; }
+    .entrance .avatar { --size:64px; }
+    .entrance .seat .dot { top:56px; left:calc(50% + 16px); }
+    .entrance .desk { width:64px; }
+
+    /* Seats */
+    .seat { position:relative; border:0; background:none; padding:6px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:120px; }
+    .seat:hover { background:#ffffff80; }
+    .seat .who { font-weight:800; font-size:.95rem; }
+    .seat .badge-count { position:absolute; top:4px; right:18px; min-width:22px; height:22px; border-radius:11px; background:var(--green); color:#fff; font-size:.7rem; font-weight:800; display:grid; place-items:center; padding:0 6px; border:2px solid var(--carpet); }
+    .seat .dot { position:absolute; top:84px; left:calc(50% + 30px); width:16px; height:16px; border:3px solid var(--carpet); }
+    .seat .tip { position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); width:max-content; max-width:260px; background:#24312e; color:#fff; font-size:.74rem; padding:8px 10px; border-radius:10px; opacity:0; pointer-events:none; transition:opacity .12s; z-index:4; text-align:left; }
+    .seat:hover .tip, .seat:focus-visible .tip { opacity:1; }
+    .avatar { --size:96px; width:var(--size); height:var(--size); border-radius:50%; background:var(--tint,#e1e8dd); border:3px solid #fff; box-shadow:0 2px 8px #0002; position:relative; overflow:hidden; display:grid; place-items:center; flex-shrink:0; }
+    .avatar span { font-weight:850; font-size:calc(var(--size) * .42); color:#24312ecc; }
+    .avatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .avatar:has(img) > span { display:none; }
+    .avatar.mini { --size:26px; border-width:2px; box-shadow:none; }
+    .avatar.builtin { background:#e6e6e6; }
+
+    /* Chains / tasks */
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:22px 0 14px; }
+    .seg { display:flex; gap:2px; background:#ebe8de; padding:3px; border-radius:10px; }
+    .seg button { border:0; background:none; padding:5px 12px; border-radius:8px; font-size:.8rem; font-weight:700; color:var(--muted); }
+    .seg button[aria-pressed="true"] { background:var(--white); color:var(--ink); box-shadow:0 1px 3px #0002; }
+    details.fold > summary { cursor:pointer; list-style:none; }
+    details.fold > summary::-webkit-details-marker { display:none; }
+    details.fold > summary::before { content:"▸"; display:inline-block; width:14px; color:var(--muted); transition:transform .12s; flex-shrink:0; }
+    details.fold[open] > summary::before { transform:rotate(90deg); }
+    .chain { background:var(--white); border:1px solid var(--line); border-radius:16px; margin-bottom:10px; }
+    .chain > summary { display:flex; align-items:center; gap:10px; padding:12px 16px; flex-wrap:wrap; }
+    .chain > .fold-body { padding:0 16px 14px 40px; display:grid; gap:8px; }
+    .hop { display:inline-flex; align-items:center; gap:6px; font-size:.86rem; font-weight:700; }
+    .arrow { color:var(--muted); }
+    .row-title { font-weight:800; font-size:1.05rem; color:var(--ink); }
+    .icon-btn { border:0; background:none; color:var(--muted); padding:2px 6px; border-radius:6px; font-size:.9rem; line-height:1; }
+    .icon-btn:hover { background:#eef2e9; color:var(--ink); }
+    .rename { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:2px 0 8px; }
+    .rename-input { flex:1; min-width:200px; padding:6px 10px; border:1px solid #a7b2a8; border-radius:8px; font-size:.9rem; background:var(--white); }
+    .me { background:var(--green); color:#fff; border-radius:999px; padding:2px 10px; font-size:.78rem; font-weight:800; }
+    .group-chip { display:inline-flex; align-items:center; gap:4px; background:#f0eee6; border-radius:999px; padding:2px 8px 2px 3px; font-size:.78rem; font-weight:650; }
+    .chain-meta { margin-left:auto; display:flex; gap:12px; align-items:center; font-size:.76rem; color:var(--muted); }
+    .period > summary { display:flex; align-items:baseline; gap:10px; padding:8px 4px; }
+    .period-title { font-weight:800; font-size:.95rem; }
+    .period > .fold-body { padding:2px 0 8px 18px; display:grid; gap:6px; }
+    #chains > .period { border-bottom:1px solid var(--line); }
+    .day > summary, .group > summary { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:.84rem; font-weight:700; }
+    .day > .fold-body { padding-left:22px; display:grid; gap:6px; }
+    .group > .fold-body { padding-left:22px; display:grid; gap:4px; }
+    .task { border-radius:10px; }
+    .task > summary { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; font-size:.84rem; }
+    .task > summary:hover { background:#f4f2ea; }
+    .task .label { font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1; }
+    .task .meta { font-size:.74rem; color:var(--muted); white-space:nowrap; }
+    .issuer { font-size:.7rem; font-weight:800; padding:1px 7px; border-radius:6px; background:#e8e2f6; color:#57417c; white-space:nowrap; }
+    .issuer.you { background:#dcecdc; color:#28532f; }
+    .task > .fold-body { padding:4px 8px 10px 30px; }
+    dl.facts { display:grid; grid-template-columns:max-content 1fr; gap:3px 14px; margin:0; font-size:.78rem; }
+    .facts dt { color:var(--muted); }
+    .facts dd { margin:0; overflow-wrap:anywhere; }
+
+    /* Drawer */
+    dialog { border:0; padding:0; color:var(--ink); background:var(--white); }
+    dialog::backdrop { background:#162b2455; }
+    dialog.drawer { margin:0 0 0 auto; height:100dvh; max-height:100dvh; width:min(560px,100vw); box-shadow:-20px 0 60px #0003; }
+    .drawer-head { position:sticky; top:0; background:var(--white); z-index:2; padding:20px 22px 14px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; }
+    .drawer-head .avatar { --size:112px; }
+    .drawer-head h2 { font-size:1.5rem; letter-spacing:-.03em; }
+    .drawer-body { padding:16px 22px 28px; display:grid; gap:14px; }
+    .close { position:absolute; top:14px; right:14px; }
+    .mini-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+    .mini-stats div { background:#f4f2ea; border-radius:12px; padding:8px 10px; }
+    .mini-stats b { display:block; font-size:1.3rem; letter-spacing:-.03em; }
+    .mini-stats span { font-size:.7rem; color:var(--muted); }
+    .bar { height:8px; border-radius:4px; background:#ebe8de; overflow:hidden; }
+    .bar i { display:block; height:100%; background:var(--green); }
+    .section > summary { font-weight:800; font-size:.9rem; padding:4px 0; }
+    .section > .fold-body { padding:6px 0 0 4px; display:grid; gap:4px; }
+    .avatar-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .avatar-status { font-size:.72rem; color:var(--muted); }
+    .avatar-status.error { color:var(--error); }
+
+    /* Runs */
+    .section-title { font-size:1rem; font-weight:800; margin:24px 0 10px; }
+    .runs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .run { background:var(--white); border:1px solid var(--line); border-radius:16px; padding:14px 16px; min-width:0; display:grid; gap:6px; }
+    .run-head { display:flex; align-items:center; gap:8px; }
+    .run h3 { font-size:1rem; overflow-wrap:anywhere; flex:1; }
+    .run-progress { font-size:1.15rem; font-weight:800; letter-spacing:-.02em; }
+    .host { font-size:.7rem; font-weight:800; padding:1px 7px; border-radius:6px; background:#e4e9df; white-space:nowrap; }
+    .run-links { display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:6px; }
+    #runs-history > .period { border-bottom:1px solid var(--line); }
+    .badge { display:inline-block; border-radius:6px; padding:2px 7px; background:#edf0e8; font-size:.64rem; font-weight:800; }
+    .facts dt { font-weight:600; }
+    .facts dd { white-space:pre-line; }
+    .source-link { display:block; font-family:ui-monospace,monospace; font-size:.66rem; overflow-wrap:anywhere; }
+    .subtasks { margin:2px 0 0; padding-left:16px; }
+
+    @media (max-width:1000px) {
+      .stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .runs { grid-template-columns:1fr; }
+    }
+    @media (max-width:680px) {
+      .wrap { padding:0 14px 30px; }
+      header { flex-wrap:wrap; }
+      .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .floor { grid-template-columns:1fr; grid-template-areas:"lead" "guard" "open" "entrance"; padding:14px; }
+      .open-plan { grid-template-columns:1fr; }
+      .seat { min-width:0; }
+      .seat .avatar { --size:72px; }
+      .seat .dot { top:62px; left:calc(50% + 20px); }
+      .desk { width:70px; }
+      .source-grid { grid-template-columns:1fr; }
+      .mini-stats { grid-template-columns:repeat(2,1fr); }
+      .chain-meta { margin-left:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">CO</span><span id="brand-name">Copilot Office</span></div>
+      <nav class="tabs" role="tablist" aria-label="Views">
+        <button class="tab" role="tab" id="tab-office" aria-controls="view-office" aria-selected="true">Office</button>
+        <button class="tab" role="tab" id="tab-tasks" aria-controls="view-tasks" aria-selected="false">Tasks</button>
+        <button class="tab" role="tab" id="tab-runs" aria-controls="view-runs" aria-selected="false">Runs</button>
+      </nav>
+      <span class="spacer"></span>
+      <details class="live" id="live">
+        <summary aria-label="Data freshness"><span id="live-dot" class="dot"></span><span id="live-text">Snapshot</span></summary>
+        <div class="live-panel" role="status" aria-live="polite">
+          <p id="live-records"></p>
+          <p id="live-office"></p>
+          <p id="live-coverage" class="muted"></p>
+          <p id="live-errors" class="error"></p>
+          <p class="muted">Activity comes from Copilot CLI session logs; records from office files. Neither is a process heartbeat.</p>
+          <div><button id="live-toggle" class="btn" hidden>Pause updates</button></div>
+        </div>
+      </details>
+    </header>
+
+    <section id="view-office" role="tabpanel" aria-labelledby="tab-office">
+      <p id="office-banner" class="banner" hidden></p>
+      <div id="stats" class="stats" aria-label="Task stats"></div>
+      <div id="floor" class="floor" aria-label="Office floor plan"></div>
+    </section>
+
+    <section id="view-tasks" role="tabpanel" aria-labelledby="tab-tasks" hidden>
+      <p id="tasks-banner" class="banner" hidden></p>
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Period">
+          <button data-period="week" aria-pressed="true">This week</button>
+          <button data-period="month" aria-pressed="false" title="Since 00:00 UTC on the first day of this month">This month</button>
+          <button data-period="all" aria-pressed="false">All</button>
+        </div>
+        <span id="tasks-count" class="small muted"></span>
+      </div>
+      <div id="chains"></div>
+    </section>
+
+    <section id="view-runs" role="tabpanel" aria-labelledby="tab-runs" hidden>
+      <p id="runs-banner" class="banner" hidden></p>
+      <h2 class="section-title">Running now</h2>
+      <div id="runs-live" class="runs"></div>
+      <h2 class="section-title">History</h2>
+      <div id="runs-history"></div>
+    </section>
+  </div>
+
+  <dialog id="drawer" class="drawer" aria-labelledby="drawer-name">
+    <button id="drawer-close" class="btn close" aria-label="Close">✕</button>
+    <div id="drawer-content"></div>
+  </dialog>
+
+
+  <noscript>This dashboard needs JavaScript.</noscript>
+  <script id="snapshot" type="application/json">
+null
+  </script>
+  <script>
+    "use strict";
+    const hosted = typeof location !== "undefined" && ["http:", "https:"].includes(location.protocol);
+    const byId = id => document.getElementById(id);
+    function el(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text !== undefined && text !== null) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+    function isString(value) { return typeof value === "string"; }
+    function cap(name) { return isString(name) && name ? name[0].toUpperCase() + name.slice(1) : name; }
+    function fmtNum(n) { return Number.isFinite(n) ? Math.round(n).toLocaleString("en-US") : "—"; }
+    function fmtCompact(n) {
+      if (!Number.isFinite(n)) return "—";
+      const trim = x => x.replace(/\.0$/, "");
+      if (n >= 1e6) return trim((n / 1e6).toFixed(n >= 1e7 ? 0 : 1)) + "M";
+      if (n >= 1e3) return trim((n / 1e3).toFixed(n >= 1e4 ? 0 : 1)) + "K";
+      return String(Math.round(n));
+    }
+    function fmtPlanShare(used, plan) {
+      if (!Number.isFinite(used) || !Number.isFinite(plan) || plan <= 0) return "—";
+      const pct = used / plan * 100;
+      return fmtCompact(used) + "/" + fmtCompact(plan) + " (" + (pct > 0 && pct < 1 ? "<1" : Math.round(pct)) + "%)";
+    }
+    function fmtDur(ms) {
+      if (!Number.isFinite(ms)) return "—";
+      const s = Math.round(ms / 1000);
+      if (s < 90) return s + "s";
+      if (s < 5400) return Math.round(s / 60) + "m";
+      return (s / 3600).toFixed(1) + "h";
+    }
+    function relTime(ts) {
+      const t = Date.parse(ts);
+      if (!Number.isFinite(t)) return "unknown";
+      const s = Math.max(0, (Date.now() - t) / 1000);
+      if (s < 90) return "just now";
+      if (s < 5400) return Math.round(s / 60) + "m ago";
+      if (s < 129600) return Math.round(s / 3600) + "h ago";
+      return Math.round(s / 86400) + "d ago";
+    }
+    function fmtWhen(ts) {
+      const t = Date.parse(ts);
+      const options = {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"};
+      if (isString(office?.timezone)) options.timeZone = office.timezone;
+      return Number.isFinite(t) ? new Date(t).toLocaleString("en-US", options) : "unknown";
+    }
+    function dayLabel(date) {
+      const t = Date.parse(date + "T12:00:00");
+      return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-US", {weekday:"short", month:"short", day:"numeric"}) : date;
+    }
+    const STATUS_WORDS = {working:"Working now", running:"Running", open:"Session open", idle:"Idle", closed:"Closed",
+      completed:"Done", "no-completion":"Ended without a completion record", unknown:"Unknown"};
+    function statusDot(status) {
+      const dot = el("span", null, "dot " + (STATUS_WORDS[status] ? status : "unknown"));
+      dot.setAttribute("title", STATUS_WORDS[status] || "Unknown");
+      dot.setAttribute("aria-label", STATUS_WORDS[status] || "Unknown");
+      dot.setAttribute("role", "img");
+      return dot;
+    }
+
+    // ---------- State ----------
+    let recordsEnvelope = null;   // /api/status or embedded snapshot
+    let snapshot = null;          // records snapshot (used by the Records view code)
+    let office = null;            // /api/office snapshot (sessions)
+    let embeddedProblem = null;
+    let period = "week";
+    const openKeys = new Set();
+    const touched = new Set();
+    let drawerAgent = null;
+    let drawerOpener = null;
+
+    // ---------- People ----------
+    function roleTemplates() {
+      return new Map((snapshot?.employees || []).filter(e => e.scope === "project").map(e => [e.roleProfile, e.name]));
+    }
+    function people() {
+      const map = new Map();
+      for (const e of snapshot?.employees || []) map.set(e.name, {id:e.id, name:e.name, title:e.role, color:e.color, scope:e.scope, profile:e.profile, roleProfile:e.roleProfile});
+      return map;
+    }
+    function person(name) {
+      const map = people();
+      if (map.has(name)) return map.get(name);
+      const templateName = roleTemplates().get(name);
+      if (templateName && map.has(templateName)) {
+        const base = map.get(templateName);
+        return {...base, label: cap(base.name) + " (" + name + ")"};
+      }
+      return {id:null, name, title:"built-in agent", color:"#e6e6e6", builtin:true};
+    }
+    function agentStats(name) { return office?.agents?.find(a => a.name === name) || null; }
+
+    // ---------- Avatars (browser-only) ----------
+    function storagePrefix(kind) { return "copilot-office:" + (recordsEnvelope?.projectId || "unconfigured") + ":" + kind + ":v1:"; }
+    const MAX_FILE_BYTES = 5 * 1024 * 1024;
+    const MAX_STORED = 300000;
+    const AVATAR_RE = /^data:image\/png;base64,[A-Za-z0-9+/]+=*$/;
+    const avatarCache = new Map();
+    function readAvatar(id) {
+      if (!id) return null;
+      if (avatarCache.has(id)) return avatarCache.get(id);
+      let value = null;
+      try {
+        const stored = localStorage.getItem(storagePrefix("avatar") + id);
+        if (stored && stored.length <= MAX_STORED && AVATAR_RE.test(stored)) value = stored;
+      } catch {}
+      avatarCache.set(id, value);
+      return value;
+    }
+    function avatarNode(p, className) {
+      const node = el("div", null, "avatar" + (className ? " " + className : "") + (p.builtin ? " builtin" : ""));
+      node.style.setProperty("--tint", p.color || "#e1e8dd");
+      node.setAttribute("aria-hidden", "true");
+      node.append(el("span", (p.name || "?")[0].toUpperCase()));
+      const data = readAvatar(p.id);
+      if (data) {
+        const image = el("img");
+        image.alt = "";
+        image.onerror = () => image.remove();
+        image.src = data;
+        node.append(image);
+        node.querySelector("span").hidden = true;
+      }
+      return node;
+    }
+    function decodeImage(url) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        const timer = setTimeout(() => { image.onload = image.onerror = null; reject(new Error("Image decoding timed out.")); }, 10000);
+        image.onload = () => { clearTimeout(timer); resolve(image); };
+        image.onerror = () => { clearTimeout(timer); reject(new Error("Image could not be decoded.")); };
+        image.src = url;
+      });
+    }
+    async function normalizeAvatar(file) {
+      if (!["image/png","image/jpeg","image/webp"].includes(file.type)) throw new Error("Choose a PNG, JPEG or WebP image; other file types are not accepted.");
+      if (file.size === 0) throw new Error("The selected file is empty.");
+      if (file.size > MAX_FILE_BYTES) throw new Error("Image exceeds 5 MiB.");
+      const h = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+      const png = [137,80,78,71,13,10,26,10].every((v, i) => h[i] === v);
+      const jpeg = h[0] === 255 && h[1] === 216 && h[2] === 255;
+      const webp = [82,73,70,70].every((v, i) => h[i] === v) && [87,69,66,80].every((v, i) => h[i + 8] === v);
+      if (!(file.type === "image/png" && png || file.type === "image/jpeg" && jpeg || file.type === "image/webp" && webp)) throw new Error("File contents do not match the selected image type.");
+      const url = URL.createObjectURL(file);
+      try {
+        const image = await decodeImage(url);
+        if (!image.naturalWidth || !image.naturalHeight || image.naturalWidth > 4096 || image.naturalHeight > 4096) throw new Error("Image must be 1–4096 px per side.");
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 192;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("This browser cannot create an avatar preview.");
+        const side = Math.min(image.naturalWidth, image.naturalHeight);
+        context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2, side, side, 0, 0, 192, 192);
+        const data = canvas.toDataURL("image/png");
+        if (!AVATAR_RE.test(data) || data.length > MAX_STORED) throw new Error("Could not encode a small PNG avatar.");
+        return data;
+      } finally { URL.revokeObjectURL(url); }
+    }
+    function avatarControls(p) {
+      const box = el("div");
+      const actions = el("div", null, "avatar-actions");
+      const input = el("input");
+      input.type = "file";
+      input.accept = "image/png,image/jpeg,image/webp";
+      input.hidden = true;
+      input.setAttribute("aria-label", "Choose avatar for " + p.name);
+      const has = Boolean(readAvatar(p.id));
+      const upload = el("button", has ? "Replace avatar" : "Upload avatar", "btn");
+      const reset = el("button", "Reset", "btn");
+      const status = el("p", null, "avatar-status");
+      status.id = "avatar-status-" + p.id;
+      status.setAttribute("role", "status");
+      upload.addEventListener("click", () => input.click());
+      input.addEventListener("change", async () => {
+        const file = input.files[0];
+        input.value = "";
+        if (!file) return;
+        status.textContent = "Checking image…";
+        status.className = "avatar-status";
+        try {
+          const data = await normalizeAvatar(file);
+          avatarCache.set(p.id, data);
+          let message = "Saved in this browser. Never uploaded.";
+          try { localStorage.setItem(storagePrefix("avatar") + p.id, data); }
+          catch (error) { message = "Preview only — not saved: browser storage is unavailable or full (" + error.name + ")."; }
+          renderAll();
+          const again = byId("avatar-status-" + p.id);
+          if (again) { again.textContent = message; again.className = "avatar-status" + (message.startsWith("Preview") ? " error" : ""); }
+        } catch (error) {
+          status.textContent = error.message;
+          status.className = "avatar-status error";
+        }
+      });
+      reset.addEventListener("click", () => {
+        try {
+          localStorage.removeItem(storagePrefix("avatar") + p.id);
+          avatarCache.set(p.id, null);
+          renderAll();
+          const again = byId("avatar-status-" + p.id);
+          if (again) again.textContent = "Reset to initials.";
+        } catch (error) {
+          status.textContent = "Reset failed: browser storage could not be cleared (" + error.name + ").";
+          status.className = "avatar-status error";
+        }
+      });
+      actions.append(upload, reset, input);
+      box.append(actions, status);
+      return box;
+    }
+
+    // ---------- Folds that remember their state across refreshes ----------
+    function fold(key, summaryNodes, build, {open = false, className = ""} = {}) {
+      const d = el("details", null, "fold" + (className ? " " + className : ""));
+      d.setAttribute("data-key", key);
+      const summary = el("summary");
+      summary.append(...summaryNodes);
+      const body = el("div", null, "fold-body");
+      d.append(summary, body);
+      let built = false;
+      const ensure = () => { if (d.open && !built) { built = true; build(body); } };
+      d.open = touched.has(key) ? openKeys.has(key) : open;
+      d.addEventListener("toggle", () => {
+        if (d.open !== (touched.has(key) ? openKeys.has(key) : open)) touched.add(key);
+        if (d.open) openKeys.add(key); else openKeys.delete(key);
+        ensure();
+      });
+      d.ensureBuilt = ensure;
+      ensure();
+      return d;
+    }
+
+    // ---------- Tasks ----------
+    function findSession(id) { return office?.sessions?.find(s => s.id === id) || null; }
+    function resolveRef(ref) {
+      const session = findSession(ref.session);
+      if (!session) return null;
+      if (!ref.delegation) return {session, delegation:null};
+      const delegation = session.delegations.find(d => d.id === ref.delegation);
+      return delegation ? {session, delegation} : null;
+    }
+    // Custom session titles live in this browser only, keyed by session ID (like avatars).
+    const titleCache = new Map();
+    function customTitle(id) {
+      if (!titleCache.has(id)) {
+        let value = null;
+        try { const t = localStorage.getItem(storagePrefix("title") + id); if (isString(t) && t.trim()) value = t.trim().slice(0, 120); } catch {}
+        titleCache.set(id, value);
+      }
+      return titleCache.get(id);
+    }
+    function saveTitle(id, value) {
+      const text = (value || "").trim().slice(0, 120);
+      try {
+        if (text) localStorage.setItem(storagePrefix("title") + id, text); else localStorage.removeItem(storagePrefix("title") + id);
+      } catch (error) { return "Could not save: browser storage is unavailable (" + error.name + ")."; }
+      titleCache.set(id, text || null);
+      return null;
+    }
+    function originalLabel(s) { return s.name || s.title || "Session " + s.id.slice(0, 8); }
+    function sessionLabel(s) { return customTitle(s.id) || originalLabel(s); }
+    function titleEditor(s, focusId) {
+      const box = el("div", null, "rename");
+      box.hidden = true;
+      const input = el("input", null, "rename-input");
+      input.type = "text";
+      input.maxLength = 120;
+      input.setAttribute("aria-label", "New title for " + originalLabel(s));
+      const save = el("button", "Save", "btn primary");
+      const cancel = el("button", "Cancel", "btn");
+      const reset = el("button", "Use original", "btn");
+      const message = el("span", null, "small error");
+      const commit = value => {
+        const text = value.trim();
+        const problem = saveTitle(s.id, text === originalLabel(s) ? "" : text);
+        if (problem) { message.textContent = problem; return; }
+        renderAll();
+        byId(focusId)?.focus();
+      };
+      save.addEventListener("click", () => commit(input.value));
+      reset.addEventListener("click", () => commit(""));
+      cancel.addEventListener("click", () => { box.hidden = true; byId(focusId)?.focus(); });
+      input.addEventListener("keydown", event => {
+        if (event.key === "Enter") commit(input.value);
+        else if (event.key === "Escape") { event.preventDefault?.(); box.hidden = true; byId(focusId)?.focus(); }
+      });
+      box.start = () => {
+        input.value = sessionLabel(s);
+        reset.hidden = !customTitle(s.id);
+        message.textContent = "";
+        box.hidden = false;
+        input.focus();
+        input.select?.();
+      };
+      box.append(input, save, cancel, reset, message);
+      return box;
+    }
+    function delegationLabel(d) { return d.task?.description || d.task?.name || "Untitled task"; }
+    function agentLabel(name, title) {
+      const p = person(name);
+      return (p.label || cap(p.name)) + " · " + (p.builtin ? (title || p.title) : (p.title || title)) ;
+    }
+    function issuerChip(name) {
+      const chip = el("span", name === "you" ? "you" : (cap(name) || "unknown"), "issuer" + (name === "you" ? " you" : ""));
+      chip.setAttribute("title", name === "you" ? "Issued by you directly" : "Issued by " + (cap(name) || "an unknown agent"));
+      return chip;
+    }
+    function fact(dl, title, value) { dl.append(el("dt", title), el("dd", value)); }
+    function taskRow(ref, {showIssuer = true, showAgent = false} = {}) {
+      const r = resolveRef(ref);
+      if (!r) return el("p", "Task not found in the current index.", "small muted");
+      const {session, delegation: d} = r;
+      const key = "task:" + session.id + ":" + (d ? d.id : "direct");
+      const status = d ? d.status : session.status;
+      const label = d ? (showAgent ? agentLabel(d.agent, d.title) + " — " : "") + delegationLabel(d) : sessionLabel(session);
+      const meta = d ? (d.status === "completed" ? fmtDur(d.durationMs) : relTime(d.started)) : relTime(session.updated);
+      const summary = [statusDot(status), el("span", label, "label")];
+      if (showIssuer) summary.push(issuerChip(d ? d.issuer : "you"));
+      summary.push(el("span", meta, "meta"));
+      return fold(key, summary, body => {
+        const dl = el("dl", null, "facts");
+        if (d) {
+          fact(dl, "Agent", agentLabel(d.agent, d.title) + (d.builtin ? " (built-in)" : d.role ? " (role template)" : ""));
+          fact(dl, "Issued by", d.issuer === "you" ? "you" : (cap(d.issuer) || "unknown"));
+          fact(dl, "Status", STATUS_WORDS[d.status] || d.status);
+          fact(dl, "Started", fmtWhen(d.started));
+          fact(dl, "Completed", d.completed ? fmtWhen(d.completed) : "—");
+          fact(dl, "Duration", fmtDur(d.durationMs));
+          fact(dl, "Model", [d.model, d.effort, d.mode].filter(Boolean).join(" · ") || "unknown");
+          fact(dl, "Tokens", d.tokens == null ? "—" : fmtNum(d.tokens));
+          fact(dl, "Tool calls", d.toolCalls == null ? "—" : fmtNum(d.toolCalls));
+          fact(dl, "Turns", fmtNum(d.turns) + (d.followUps ? " (" + d.followUps + " follow-ups)" : ""));
+          if (d.reportedLogUnits != null && office?.credits?.calibrated) fact(dl, "Credits (est.)", fmtNum(d.reportedLogUnits * office.credits.factor) + " AIC, partial");
+          body.append(dl);
+          if (d.task?.name) body.append(el("p", "Task name: " + d.task.name, "small muted"));
+          if (d.task?.prompt) body.append(fold(key + ":prompt", [el("span", "Task prompt", "small")], b => b.append(el("pre", d.task.prompt))));
+          const children = session.delegations.filter(c => c.parent === d.id);
+          if (children.length) body.append(groupList(session, children, key + ":children", "Spawned by " + cap(d.agent)));
+        } else {
+          fact(dl, "Session", session.id);
+          if (customTitle(session.id)) fact(dl, "Original name", originalLabel(session));
+          fact(dl, "Status", STATUS_WORDS[session.status] || session.status);
+          fact(dl, "Lead agent", session.agents.map(cap).join(" → ") || "unknown");
+          fact(dl, "Started", fmtWhen(session.created));
+          fact(dl, "Last update", fmtWhen(session.updated));
+          fact(dl, "Delegations", fmtNum(session.delegations.length));
+          if (office?.credits?.calibrated) fact(dl, "Credits (est.)", fmtNum(session.usage.monthEstAic) + " AIC this month");
+          else if (office?.credits) fact(dl, "Usage", fmtNum(session.usage.monthLogUnits) + " log units this month");
+          if (session.context?.currentTokens != null) fact(dl, "Context", fmtCompact(session.context.currentTokens) + " tokens at " + fmtWhen(session.context.observedAt));
+          body.append(dl);
+          if (session.title && session.title !== session.name) body.append(fold(key + ":first", [el("span", "First message", "small")], b => b.append(el("pre", session.title))));
+        }
+        const go = el("button", "Show chain in Tasks", "btn");
+        go.addEventListener("click", () => goToSession(session.id));
+        body.append(go);
+      }, {className:"task"});
+    }
+    function groupList(session, delegations, keyPrefix, heading) {
+      const wrap = el("div");
+      if (heading) wrap.append(el("p", heading, "small muted"));
+      const groups = new Map();
+      for (const d of delegations) {
+        if (!groups.has(d.agent)) groups.set(d.agent, []);
+        groups.get(d.agent).push(d);
+      }
+      for (const [agent, list] of [...groups].sort((a, b) => b[1].length - a[1].length)) {
+        const p = person(agent);
+        const summary = [avatarNode(p, "mini"), el("span", agentLabel(agent, list[0].title)), el("span", "×" + list.length, "muted")];
+        if (list.some(d => d.status === "running")) summary.push(statusDot("running"));
+        wrap.append(fold(keyPrefix + ":" + agent, summary, body => {
+          list.slice().sort((a, b) => (b.started || "").localeCompare(a.started || "")).forEach(d => body.append(taskRow({session:session.id, delegation:d.id}, {showIssuer:false})));
+        }, {className:"group"}));
+      }
+      return wrap;
+    }
+
+    // ---------- Office view ----------
+    function floorPlan() {
+      const byEmployee = new Map((snapshot?.employees || []).map(e => [e.id, e]));
+      const named = id => byEmployee.get(id)?.name;
+      const shown = id => cap(named(id) || id);
+      return {
+        offices: [
+          {name:named("lead"), label:byEmployee.get("lead")?.role || "Manager", area:"lead",
+           hint:shown("lead") + " plans, delegates, and keeps the records"},
+          {name:named("guardian"), label:byEmployee.get("guardian")?.role || "Counselor", area:"guard",
+           hint:shown("guardian") + " gives independent second opinions"}
+        ],
+        pods: [
+          {label:"Build & Review", ids:["builder","reviewer"],
+           hint:shown("builder") + " builds and runs changes · " + shown("reviewer") + " reviews them"},
+          {label:"Analysis & Code Reading", ids:["analyst","navigator"],
+           hint:shown("analyst") + " analyzes results · " + shown("navigator") + " reads and explains code"},
+          {label:"Research & Docs", ids:["researcher","curator"],
+           hint:shown("researcher") + " researches sources · " + shown("curator") + " maintains docs"}
+        ].map(p => ({...p, seats:p.ids.map(named)})),
+        entrance: {name:named("frontdesk"), label:"Front desk",
+          hint:shown("frontdesk") + " routes you back to the right Copilot session"}
+      };
+    }
+    function seat(name) {
+      const p = person(name);
+      const a = agentStats(name);
+      const openCount = a ? a.direct.open + a.delegated.open : 0;
+      const status = a ? a.status : "unknown";
+      const button = el("button", null, "seat");
+      button.id = "seat-" + name;
+      const tip = el("div", null, "tip");
+      tip.setAttribute("aria-hidden", "true");
+      tip.append(el("div", p.title));
+      if (a) {
+        tip.append(el("div", (STATUS_WORDS[status] || status) + " · " + openCount + " open · " + (a.direct.week + a.delegated.week) + " this week"));
+        const current = a.current.map(resolveRef).filter(Boolean)[0];
+        if (current) tip.append(el("div", "Now: " + (current.delegation ? delegationLabel(current.delegation) : sessionLabel(current.session))));
+      } else tip.append(el("div", office ? "No session activity indexed" : "Activity needs the server"));
+      button.append(tip, avatarNode(p), el("span", cap(name), "who"));
+      if (a) button.append(statusDot(status));
+      if (openCount) { const count = el("span", String(openCount), "badge-count"); count.setAttribute("title", openCount + " open task" + (openCount === 1 ? "" : "s")); button.append(count); }
+      button.setAttribute("aria-label", cap(name) + ", " + p.title + (a ? ", " + (STATUS_WORDS[status] || status) + ", " + openCount + " open tasks" : ""));
+      button.addEventListener("click", () => openDrawer(name, button));
+      return button;
+    }
+    // Session counts use the same slots as the Tasks tab, so both views agree.
+    function periodCounts() {
+      if (!office) return null;
+      const week = currentWeekStart(), month = currentCreditMonth();
+      const slots = activitySlots(true);
+      const pick = keep => {
+        const xs = slots.filter(keep);
+        return {sessions: new Set(xs.map(x => x.session.id)).size, delegations: xs.reduce((n, x) => n + x.delegations.length, 0), slots: xs};
+      };
+      const running = office.sessions.flatMap(x => x.delegations.filter(d => d.status === "running").map(d => ({session: x.id, delegation: d.id})));
+      const openSessions = office.sessions.filter(x => x.status !== "closed");
+      return {open: {sessions: openSessions.length, delegations: running.length, refs: [...openSessions.map(x => ({session: x.id, delegation: null})), ...running]},
+              week: pick(x => x.date >= week), month: pick(x => x.month === month), total: pick(() => true)};
+    }
+    function plural(n, word) { return fmtNum(n) + " " + word + (n === 1 ? "" : "s"); }
+    function renderStats() {
+      const box = byId("stats");
+      box.replaceChildren();
+      const c = periodCounts();
+      const credits = office?.credits;
+      const card = (key, title, num, sub, build, hint) => {
+        const heading = el("span", title, "lbl");
+        if (hint) heading.setAttribute("title", hint);
+        const parts = [heading, el("span", num, "num")];
+        if (sub) parts.push(el("span", sub, "sub"));
+        if (build) { box.append(fold("stat:" + key, parts, build, {className:"stat"})); return; }
+        const node = el("div", null, "stat");
+        const head = el("div", null, "stat-head");
+        head.append(...parts);
+        node.append(head);
+        box.append(node);
+      };
+      const n = key => c ? fmtNum(c[key].sessions) : "—";
+      card("open", "Sessions open now", n("open"), c && plural(c.open.delegations, "delegation") + " running", c && (body => {
+        if (!c.open.refs.length) body.append(el("p", "Nothing open.", "muted"));
+        c.open.refs.forEach(ref => body.append(taskRow(ref, {showAgent:true})));
+      }));
+      card("week", "Sessions this week", n("week"), c && plural(c.week.delegations, "delegation"), c && (body => {
+        const issuers = new Map();
+        c.week.slots.forEach(x => x.delegations.forEach(d => issuers.set(d.issuer || "unknown", (issuers.get(d.issuer || "unknown") || 0) + 1)));
+        const you = el("p"); you.append(issuerChip("you"), document.createTextNode(" " + plural(c.week.sessions, "session")));
+        body.append(you);
+        [...issuers].sort((a, b) => b[1] - a[1]).forEach(([who, count]) => {
+          const row = el("p"); row.append(issuerChip(who), document.createTextNode(" " + plural(count, "delegation")));
+          body.append(row);
+        });
+      }), "Sessions with activity since Monday in " + (office?.timezone || "the configured timezone"));
+      card("month", "Sessions this month", n("month"), c && plural(c.month.delegations, "delegation"), null,
+        "Since 00:00 UTC on the first day of this month");
+      card("total", "All sessions", n("total"), c && plural(c.total.delegations, "delegation") +
+        (office?.coverage?.since ? " · since " + fmtWhen(office.coverage.since).split(",")[0] : ""), null);
+      const creditValue = !credits ? "—" : !credits.calibrated ? fmtCompact(credits.monthLogUnits) + " log units"
+        : Number.isFinite(credits.planAic) ? fmtPlanShare(credits.monthEstAic, credits.planAic) : "≈" + fmtCompact(credits.monthEstAic) + " AIC";
+      card("credits", credits?.calibrated ? "AI credits this month" : "Session-log usage this month", creditValue,
+        credits?.calibrated ? "estimate" : "not calibrated", credits && (body => {
+        if (credits.calibrated) {
+          body.append(el("p", "≈ " + fmtNum(credits.monthEstAic) + " AIC; plan resets 00:00 UTC on the 1st."),
+            el("p", "Estimated from session logs using the saved calibration."));
+        } else {
+          body.append(el("p", fmtNum(credits.monthLogUnits) + " log units. To estimate AIC, run:"),
+            el("p", "python3 office.py calibrate --used <N from /usage>", "muted"));
+        }
+        const top = (office.agents || []).filter(a => a.usage.monthLogUnits > 0).sort((a, b) => b.usage.monthShare - a.usage.monthShare);
+        top.forEach(a => {
+          const row = el("div"); const bar = el("div", null, "bar"); const fill = el("i");
+          fill.style.setProperty("width", Math.round(a.usage.monthShare * 100) + "%");
+          bar.append(fill);
+          const usage = credits.calibrated ? fmtNum(a.usage.monthEstAic) + " AIC" : fmtNum(a.usage.monthLogUnits) + " log units";
+          row.append(el("span", cap(a.name) + " · " + usage + " (" + Math.round(a.usage.monthShare * 100) + "%)", "small"), bar);
+          body.append(row);
+        });
+      }));
+    }
+    function roomLabel(text, hint) {
+      const label = el("span", text, "room-label");
+      if (hint) label.setAttribute("title", hint);
+      return label;
+    }
+    function deskNode(monitors) {
+      const desk = el("div", null, "desk");
+      desk.setAttribute("aria-hidden", "true");
+      for (let i = 0; i < monitors; i++) desk.append(el("i"));
+      return desk;
+    }
+    function renderFloor() {
+      const floor = byId("floor");
+      floor.replaceChildren();
+      const placed = new Set();
+      const layout = floorPlan();
+      for (const o of layout.offices.filter(o => o.name)) {
+        const room = el("div", null, "room office");
+        room.style.setProperty("grid-area", o.area);
+        room.append(roomLabel(o.label, o.hint), seat(o.name), deskNode(1));
+        floor.append(room);
+        placed.add(o.name);
+      }
+      const plan = el("div", null, "open-plan");
+      for (const pod of layout.pods) {
+        const room = el("div", null, "room pod");
+        room.append(roomLabel(pod.label, pod.hint));
+        pod.seats.filter(Boolean).forEach((name, i) => {
+          if (i === 1) room.append(deskNode(2));
+          room.append(seat(name));
+          placed.add(name);
+        });
+        plan.append(room);
+      }
+      floor.append(plan);
+      if (layout.entrance.name) {
+        const entrance = el("div", null, "room entrance");
+        entrance.append(roomLabel(layout.entrance.label, layout.entrance.hint), seat(layout.entrance.name), deskNode(1));
+        placed.add(layout.entrance.name);
+        floor.append(entrance);
+      }
+      const extra = [...people().keys()].filter(n => !placed.has(n));
+      if (extra.length) {
+        const hot = el("div", null, "room open-plan");
+        hot.style.setProperty("grid-column", "1 / -1");
+        hot.append(el("span", "Hot desks", "room-label"), ...extra.map(seat));
+        floor.append(hot);
+      }
+    }
+    function renderOffice() {
+      const banner = byId("office-banner");
+      banner.hidden = Boolean(office) && !office.coverage?.building;
+      banner.textContent = !office ? (hosted ? "Loading session activity…" : "Opened from disk: activity and stats need the server (see README).")
+        : "Indexing session history… numbers will fill in shortly.";
+      renderStats();
+      renderFloor();
+    }
+
+    // ---------- Drawer ----------
+    function openDrawer(name, opener) {
+      drawerAgent = name;
+      drawerOpener = opener;
+      renderDrawer();
+      const drawer = byId("drawer");
+      if (!drawer.open) drawer.showModal();
+      byId("drawer-close").focus();
+    }
+    function renderDrawer() {
+      if (!drawerAgent) return;
+      const p = person(drawerAgent);
+      const a = agentStats(drawerAgent);
+      const content = byId("drawer-content");
+      content.replaceChildren();
+      const head = el("div", null, "drawer-head");
+      const text = el("div");
+      const name = el("h2", cap(drawerAgent)); name.id = "drawer-name";
+      text.append(name, el("p", p.title + (p.scope === "office" ? " · office-wide, not project staff" : ""), "muted"));
+      if (p.id) text.append(avatarControls(p));
+      head.append(avatarNode(p), text);
+      const body = el("div", null, "drawer-body");
+      content.append(head, body);
+      if (!a) {
+        body.append(el("p", office ? "No session activity indexed for this agent." : "Activity needs the server.", "muted"));
+      } else {
+        const stats = el("div", null, "mini-stats");
+        for (const [label, key] of [["open","open"],["this week","week"],["this month","month"],["all","total"]]) {
+          const box = el("div");
+          box.append(el("b", fmtNum(a.direct[key] + a.delegated[key])), el("span", label + " · " + a.direct[key] + " direct / " + a.delegated[key] + " delegated"));
+          stats.append(box);
+        }
+        body.append(stats);
+        const usage = el("dl", null, "facts");
+        fact(usage, "Status", STATUS_WORDS[a.status] || a.status);
+        fact(usage, "Tokens as delegate", fmtCompact(a.tokens.week) + " this week · " + fmtCompact(a.tokens.total) + " total");
+        if (office.credits?.calibrated) fact(usage, "Credits led (est.)", fmtNum(a.usage.monthEstAic) + " AIC this month · " + Math.round(a.usage.monthShare * 100) + "% of all");
+        else if (office.credits) fact(usage, "Usage led", fmtNum(a.usage.monthLogUnits) + " log units this month · " + Math.round(a.usage.monthShare * 100) + "% of all");
+        body.append(usage);
+        body.append(fold("drawer:" + drawerAgent + ":now", [el("span", "Now (" + a.current.length + ")")], b => {
+          if (!a.current.length) b.append(el("p", "Nothing open.", "small muted"));
+          a.current.forEach(ref => b.append(taskRow(ref)));
+        }, {open: a.current.length > 0, className:"section"}));
+        body.append(fold("drawer:" + drawerAgent + ":week", [el("span", "This week (" + a.week.length + ")")], b => {
+          if (!a.week.length) b.append(el("p", "Nothing started this week.", "small muted"));
+          const byDay = new Map();
+          for (const ref of a.week) {
+            const r = resolveRef(ref); if (!r) continue;
+            const ts = r.delegation ? r.delegation.started : r.session.created;
+            const day = ts ? new Date(Date.parse(ts)).toLocaleDateString("en-CA") : "unknown";
+            if (!byDay.has(day)) byDay.set(day, []);
+            byDay.get(day).push(ref);
+          }
+          [...byDay].sort((x, y) => y[0].localeCompare(x[0])).forEach(([day, refs], i) => {
+            b.append(fold("drawer:" + drawerAgent + ":day:" + day, [el("span", dayLabel(day) + " (" + refs.length + ")")], db => refs.forEach(ref => db.append(taskRow(ref))), {open: i === 0, className:"day"}));
+          });
+        }, {open:true, className:"section"}));
+      }
+      if (p.profile) {
+        body.append(fold("drawer:" + drawerAgent + ":profile", [el("span", "Declared configuration")], b => {
+          const dl = el("dl", null, "facts");
+          fact(dl, "Model", p.profile.model);
+          fact(dl, "Tools", p.profile.tools.join(", ") || "unknown");
+          if (isString(p.profile.invocation)) fact(dl, "Invocation", p.profile.invocation);
+          fact(dl, "Definition", p.profile.integrityDetail);
+          b.append(el("p", p.profile.description, "small"), dl);
+        }, {className:"section"}));
+      }
+    }
+    byId("drawer-close").addEventListener("click", () => byId("drawer").close());
+    byId("drawer").addEventListener("close", () => {
+      drawerAgent = null;
+      const target = drawerOpener?.id ? byId(drawerOpener.id) : drawerOpener;
+      if (target) target.focus();
+    });
+    byId("drawer").addEventListener("click", event => {
+      if (event.target !== byId("drawer")) return;
+      const r = byId("drawer").getBoundingClientRect();
+      if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) byId("drawer").close();
+    });
+
+    // ---------- Tasks view ----------
+    // Months follow the 00:00 UTC credit reset; weeks and days use the configured timezone.
+    function tz() { return isString(office?.timezone) ? office.timezone : "UTC"; }
+    function localDate(ts) {
+      const t = Date.parse(ts);
+      return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-CA", {timeZone: tz()}) : null;
+    }
+    function creditMonth(ts) {
+      const t = Date.parse(ts);
+      return Number.isFinite(t) ? new Date(t).toISOString().slice(0, 7) : null;
+    }
+    function addDays(date, n) { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+    function mondayOf(date) { const d = new Date(date + "T00:00:00Z"); return addDays(date, -((d.getUTCDay() + 6) % 7)); }
+    function shortDate(date) { return new Date(date + "T12:00:00Z").toLocaleDateString("en-US", {month:"short", day:"numeric", timeZone:"UTC"}); }
+    function monthLabel(month) { return new Date(month + "-15T12:00:00Z").toLocaleDateString("en-US", {month:"long", year:"numeric", timeZone:"UTC"}); }
+    function weekLabel(monday) { return shortDate(monday) + " – " + shortDate(addDays(monday, 6)); }
+    function currentWeekStart() { return localDate(office?.periods?.weekStart) || mondayOf(localDate(new Date().toISOString())); }
+    function currentCreditMonth() { return creditMonth(office?.periods?.creditsMonthStart) || creditMonth(new Date().toISOString()); }
+    function resetHint(month) { return "Credits reset at 00:00 UTC on the first day of the month; this part counts toward " + monthLabel(month) + "."; }
+
+    // One slot = one session's activity on one configured-timezone day.
+    function activitySlots(splitMonths) {
+      const slots = new Map();
+      const slot = (month, date, s) => {
+        const key = (splitMonths ? month + "|" : "") + date + "|" + s.id;
+        if (!slots.has(key)) slots.set(key, {month, date, session: s, delegations: [], messages: 0, logUnits: 0});
+        return slots.get(key);
+      };
+      for (const s of office.sessions) {
+        const index = new Map(s.delegations.map(d => [d.id, d]));
+        const days = s.days.length ? s.days : [{date: localDate(s.created) || localDate(s.updated), messages: 0, delegations: []}];
+        for (const day of days) {
+          if (!isString(day.date)) continue;
+          slot(day.date.slice(0, 7), day.date, s).messages += day.messages || 0;
+          for (const id of day.delegations || []) {
+            const d = index.get(id);
+            if (!d || d.parent) continue;
+            slot(creditMonth(d.started) || day.date.slice(0, 7), day.date, s).delegations.push(d);
+          }
+        }
+        for (const u of s.usage?.byDay || []) {
+          if (isString(u.month) && isString(u.date) && Number.isFinite(u.logUnits)) slot(u.month, u.date, s).logUnits += u.logUnits;
+        }
+      }
+      return [...slots.values()];
+    }
+    function groupBy(list, keyFn) {
+      const groups = new Map();
+      for (const item of list) { const k = keyFn(item); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(item); }
+      return [...groups].sort((a, b) => b[0].localeCompare(a[0]));
+    }
+    function countLabel(slots) {
+      const sessions = new Set(slots.map(x => x.session.id)).size;
+      const delegations = slots.reduce((n, x) => n + x.delegations.length, 0);
+      const aic = office?.credits?.calibrated ? slots.reduce((n, x) => n + x.logUnits, 0) * office.credits.factor : null;
+      return sessions + " session" + (sessions === 1 ? "" : "s") + (delegations ? " · " + delegations + " delegation" + (delegations === 1 ? "" : "s") : "") +
+        (Number.isFinite(aic) && aic >= 0.5 ? " · ≈" + fmtCompact(aic) + " AIC" : "");
+    }
+    function lastStart(slot) {
+      return slot.delegations.reduce((latest, d) => (d.started || "") > latest ? d.started : latest, slot.session.created || "");
+    }
+    function periodGroup(key, title, slots, build, open, hint) {
+      const heading = el("span", title, "period-title");
+      if (hint) heading.setAttribute("title", hint);
+      return fold(key, [heading, el("span", countLabel(slots), "muted small")], build, {open, className:"period"});
+    }
+    function renderWeeks(parent, slots, prefix, month) {
+      groupBy(slots, x => mondayOf(x.date)).forEach(([monday, items], i) =>
+        parent.append(periodGroup(prefix + ":w:" + monday, weekLabel(monday), items, b => renderDays(b, items, prefix + ":w:" + monday, month), i === 0)));
+    }
+    function renderDays(parent, slots, prefix, month) {
+      groupBy(slots, x => x.date).forEach(([date, items], i) => {
+        const afterReset = Boolean(month) && date.slice(0, 7) !== month;
+        const key = prefix + ":d:" + date;
+        parent.append(periodGroup(key, dayLabel(date) + (afterReset ? " · after reset" : ""), items, b => {
+          items.slice().sort((x, y) => lastStart(y).localeCompare(lastStart(x))).forEach(slot => b.append(sessionRow(slot, key + ":s:" + slot.session.id)));
+        }, i === 0, afterReset ? resetHint(month) : null));
+      });
+    }
+    function sessionRow(slot, key) {
+      const s = slot.session;
+      const ds = slot.delegations;
+      const title = el("span", sessionLabel(s), "row-title");
+      if (customTitle(s.id)) title.setAttribute("title", "Renamed · original: " + originalLabel(s));
+      const pencil = el("button", "✎", "icon-btn");
+      pencil.id = "rename:" + key;
+      pencil.setAttribute("aria-label", "Rename " + sessionLabel(s));
+      pencil.setAttribute("title", "Rename");
+      const summary = [statusDot(s.status), title, pencil, el("span", "Me", "me"), el("span", "→", "arrow")];
+      (s.agents.length ? s.agents : ["unknown"]).forEach((name, i) => {
+        if (i) summary.push(el("span", "→", "arrow"));
+        const hop = el("span", null, "hop");
+        hop.append(avatarNode(person(name), "mini"), el("span", person(name).label || cap(name)));
+        summary.push(hop);
+      });
+      if (ds.length) {
+        summary.push(el("span", "→", "arrow"));
+        const counts = new Map();
+        ds.forEach(d => counts.set(d.agent, (counts.get(d.agent) || 0) + 1));
+        [...counts].sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(([agent, n]) => {
+          const chip = el("span", null, "group-chip");
+          chip.append(avatarNode(person(agent), "mini"), el("span", cap(agent) + (n > 1 ? " ×" + n : "")));
+          chip.setAttribute("title", agentLabel(agent));
+          summary.push(chip);
+        });
+        if (counts.size > 5) summary.push(el("span", "+" + (counts.size - 5), "muted small"));
+        const ids = new Set(ds.map(d => d.id));
+        let deeper = 0, grew = true;
+        while (grew) {
+          grew = false;
+          for (const d of s.delegations) if (d.parent && ids.has(d.parent) && !ids.has(d.id)) { ids.add(d.id); deeper++; grew = true; }
+        }
+        if (deeper) summary.push(el("span", "→ " + deeper + " deeper", "muted small"));
+      }
+      const meta = el("span", null, "chain-meta");
+      if (slot.messages) meta.append(el("span", slot.messages + " msg" + (slot.messages === 1 ? "" : "s")));
+      summary.push(meta);
+      let editor = null;  // the body may be built inside fold() itself, before `row` exists
+      const row = fold(key, summary, body => {
+        editor = titleEditor(s, pencil.id);
+        body.append(editor);
+        if (ds.length) body.append(groupList(s, ds, key));
+        else body.append(el("p", "No delegations this day.", "small muted"));
+        body.append(taskRow({session:s.id, delegation:null}, {showIssuer:false}));
+      }, {className:"chain"});
+      pencil.addEventListener("click", event => {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+        openKeys.add(key);
+        touched.add(key);
+        row.open = true;
+        row.ensureBuilt();
+        editor?.start();
+      });
+      return row;
+    }
+    function renderTasks() {
+      const banner = byId("tasks-banner");
+      banner.hidden = Boolean(office);
+      banner.textContent = hosted ? "Loading session activity…" : "Opened from disk: task chains need the server (see README).";
+      const list = byId("chains");
+      list.replaceChildren();
+      if (!office) { byId("tasks-count").textContent = ""; return; }
+      const month = currentCreditMonth();
+      let slots = activitySlots(period !== "week");
+      if (period === "week") slots = slots.filter(x => x.date >= currentWeekStart());
+      if (period === "month") slots = slots.filter(x => x.month === month);
+      byId("tasks-count").textContent = slots.length ? countLabel(slots) : "";
+      if (!slots.length) { list.append(el("p", "No sessions in this period.", "muted")); return; }
+      const prefix = "tasks:" + period;
+      if (period === "week") renderDays(list, slots, prefix, null);
+      else if (period === "month") renderWeeks(list, slots, prefix, month);
+      else groupBy(slots, x => x.month).forEach(([m, items], i) =>
+        list.append(periodGroup(prefix + ":m:" + m, monthLabel(m), items, b => renderWeeks(b, items, prefix + ":m:" + m, m), i === 0,
+          "Credit month: from 00:00 UTC on the first day of the month")));
+    }
+    function goToSession(id) {
+      if (!office || !findSession(id)) return;
+      const latest = activitySlots(true).filter(x => x.session.id === id)
+        .sort((a, b) => b.date.localeCompare(a.date) || b.month.localeCompare(a.month))[0];
+      if (!latest) return;
+      const next = latest.date >= currentWeekStart() ? "week" : latest.month === currentCreditMonth() ? "month" : "all";
+      const prefix = "tasks:" + next;
+      const week = ":w:" + mondayOf(latest.date);
+      const keys = next === "week" ? [prefix + ":d:" + latest.date]
+        : next === "month" ? [prefix + week, prefix + week + ":d:" + latest.date]
+        : [prefix + ":m:" + latest.month, prefix + ":m:" + latest.month + week, prefix + ":m:" + latest.month + week + ":d:" + latest.date];
+      const rowKey = keys[keys.length - 1] + ":s:" + id;
+      for (const k of [...keys, rowKey]) { openKeys.add(k); touched.add(k); }
+      drawerOpener = null;
+      if (byId("drawer").open) byId("drawer").close();
+      selectTab("tasks");
+      setPeriod(next);
+      const node = walkFind(byId("chains"), n => n.getAttribute?.("data-key") === rowKey);
+      if (node) { node.scrollIntoView?.({block:"start"}); node.querySelector("summary")?.focus(); }
+    }
+    function walkFind(root, test) {
+      for (const child of root.children || []) {
+        if (test(child)) return child;
+        const found = walkFind(child, test);
+        if (found) return found;
+      }
+      return null;
+    }
+    function setPeriod(next) {
+      period = next;
+      for (const b of byId("view-tasks").querySelector(".seg").children) b.setAttribute("aria-pressed", String(b.getAttribute("data-period") === next));
+      renderTasks();
+    }
+    for (const b of byId("view-tasks").querySelector(".seg").children) b.addEventListener("click", () => setPeriod(b.getAttribute("data-period")));
+
+    // ---------- Shared feed helpers ----------
+    function validateFeed(data) {
+      if (data?.schemaVersion !== 2 || !isString(data.projectId) || !/^[a-z0-9][a-z0-9_-]*$/.test(data.projectId) || !["record-feed","embedded-snapshot"].includes(data.mode) ||
+          !isString(data.collectedAt) || !Number.isFinite(Date.parse(data.collectedAt)) || !isString(data.revision) ||
+          !Array.isArray(data.errors) || !data.errors.every(e => e && isString(e.path) && isString(e.error))) throw new Error("Invalid record feed envelope");
+      const s = data.snapshot;
+      if (!s || !Array.isArray(s.employees) || !s.employees.length || !Array.isArray(s.assignments) || !Array.isArray(s.runs) ||
+          !s.sources || typeof s.sources !== "object" || Array.isArray(s.sources) || !Array.isArray(s.leadSessions) || !s.project ||
+          !["id","displayName","status","repositoryStatus","readinessScope","groundRule","currentSnapshotHeading","currentSnapshot"].every(k => isString(s.project[k])) ||
+          !["taskCount","openTaskCount","activeRunCount"].every(k => Number.isInteger(s[k]) && s[k] >= 0)) throw new Error("Invalid record feed collections");
+      if (!s.leadSessions.every(x => x && isString(x.id) && isString(x.status) && isString(x.label) && typeof x.current === "boolean")) throw new Error("Invalid Lead session in record feed");
+      for (const source of Object.values(s.sources)) {
+        if (!source || !["path","time","note"].every(k => isString(source[k]))) throw new Error("Invalid source in record feed");
+      }
+      const ids = new Set();
+      for (const e of s.employees) {
+        if (!["id","name","role","roleProfile","label","note","color"].every(k => isString(e[k])) || !/^[a-z][a-z0-9_-]*$/.test(e.id) ||
+            !/^#[0-9a-f]{6}$/i.test(e.color) || ids.has(e.id) || !e.profile || !Array.isArray(e.profile.tools) ||
+            !["description","model","integrity","integrityDetail"].every(k => isString(e.profile[k])) || !Array.isArray(e.suggested) ||
+            !["project","office"].includes(e.scope)) throw new Error("Invalid employee in record feed");
+        ids.add(e.id);
+      }
+      const assignmentIds = new Set();
+      for (const a of s.assignments) {
+        if (!a || !["id","title","stage","status","blocker","next","observed"].every(k => isString(a[k])) || !/^[A-Za-z0-9_-]+$/.test(a.id) ||
+            !ids.has(a.employee) || !["open","closed","idle"].includes(a.lane) || assignmentIds.has(a.id) ||
+            !Array.isArray(a.sources) || !a.sources.length || !a.sources.every(k => Object.hasOwn(s.sources, k)) ||
+            !Array.isArray(a.steps) || a.steps.length !== 4) throw new Error("Invalid assignment in record feed");
+        assignmentIds.add(a.id);
+        for (const step of a.steps) {
+          if (!["title","stage","text","observed"].every(k => isString(step[k])) || !Array.isArray(step.sources) ||
+              !step.sources.every(k => Object.hasOwn(s.sources, k))) throw new Error("Invalid provenance in record feed");
+        }
+      }
+      for (const r of s.runs) {
+        if (!r || !["id","name","host","registryStatus","readmeStatus"].every(k => isString(r[k])) || typeof r.recordedActive !== "boolean" ||
+            !r.health || !Array.isArray(r.sources) || !r.sources.every(k => Object.hasOwn(s.sources, k))) throw new Error("Invalid run in record feed");
+      }
+      return data;
+    }
+    function badge(stage) { return el("span", stage, "badge " + stage.toLowerCase().replace(/[^a-z]/g, "")); }
+    function sourceLink(key) {
+      const source = snapshot.sources[key];
+      const link = el("a", source.path, "source-link");
+      // Only served office-local evidence paths become links; everything else stays inert text.
+      if (source.served && !source.error && /^(?:\.agent-office|\.github|reports|meeting-notes|run-logs|research)\/[A-Za-z0-9_./-]+$/.test(source.path) && !source.path.split("/").includes("..")) {
+        link.href = hosted ? "/evidence?source=" + encodeURIComponent(source.path) : "../../" + source.path;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+      }
+      return link;
+    }
+
+    // ---------- Runs view ----------
+    // Runs are launched by the user; this view only reads run-logs/ (registry, notes, health logs).
+    function runOutcome(r) {
+      if (r.registryStatus.startsWith("No outcome")) return {kind: r.health.stale || r.health.error ? "stale" : "running", label: "Running"};
+      const t = r.registryStatus.toLowerCase();
+      if (/fail|error|terminat/.test(t)) return {kind: "error", label: "Failed"};
+      if (/stop|cancel|supersed|abort/.test(t)) return {kind: "no-completion", label: "Stopped"};
+      if (/complet|done|finish/.test(t)) return {kind: "completed", label: "Done"};
+      return {kind: "unknown", label: "Ended"};
+    }
+    function healthSummary(h) {
+      const block = h.block || "";
+      const updates = ((block.match(/updates=([^\n]*)/) || [])[1] || "").match(/v\d+(?=@)/g);
+      const traj = block.match(/traj started=(\d+) ended=(\d+) failed=(\d+)/);
+      return {version: updates ? updates[updates.length - 1] : null, ended: traj ? Number(traj[2]) : null, failed: traj ? Number(traj[3]) : null};
+    }
+    function runDot(o, r) {
+      const dot = el("span", null, "dot " + o.kind);
+      const word = o.label + (o.kind === "stale" ? " · no recent health check" : "");
+      dot.setAttribute("title", word); dot.setAttribute("aria-label", word); dot.setAttribute("role", "img");
+      return dot;
+    }
+    function runProgress(r) {
+      const h = healthSummary(r.health);
+      const parts = [];
+      if (h.version) parts.push(h.version);
+      if (h.ended != null) parts.push(fmtNum(h.ended) + " traj" + (h.failed ? " · " + fmtNum(h.failed) + " failed" : ""));
+      return parts.join(" · ");
+    }
+    function runDetails(body, r) {
+      const dl = el("dl", null, "facts");
+      fact(dl, "Outcome", r.registryStatus + (r.superseded ? "\nSuperseded: " + r.superseded : ""));
+      fact(dl, "Host", r.host);
+      fact(dl, "Started", r.started + (r.attempt !== "Unknown" ? " · attempt " + r.attempt : ""));
+      const h = r.health;
+      fact(dl, "Last health check", h.error ? "No health log" : (h.modifiedAt ? relTime(h.modifiedAt) + (h.blockTime ? " (printed " + h.blockTime + ")" : "") : "unknown"));
+      const progress = runProgress(r);
+      if (progress) fact(dl, "Progress", progress);
+      fact(dl, "Run ID", r.rid);
+      body.append(dl);
+      if (h.block) body.append(fold("run:" + r.id + ":health", [el("span", "Last health check", "small")], b => b.append(el("pre", h.block))));
+      if (r.issues) body.append(fold("run:" + r.id + ":events", [el("span", "Issues / events", "small")], b => b.append(el("pre", r.issues))));
+      if (r.setup && r.setup !== "Unknown") body.append(fold("run:" + r.id + ":setup", [el("span", "Setup", "small")], b => b.append(el("p", r.setup, "small"))));
+      const links = el("div", null, "run-links");
+      r.sources.filter(k => k.startsWith("run:") && snapshot.sources[k] && !snapshot.sources[k].error).forEach(k => links.append(sourceLink(k)));
+      if (links.children.length) body.append(links);
+    }
+    function liveRunCard(r) {
+      const o = runOutcome(r);
+      const card = el("article", null, "run");
+      card.id = "run-" + r.id;
+      const head = el("div", null, "run-head");
+      head.append(runDot(o, r), el("h3", r.name), el("span", r.host, "host"));
+      card.append(head);
+      const progress = runProgress(r);
+      if (progress) card.append(el("p", progress, "run-progress"));
+      const h = r.health;
+      card.append(el("p", "Started " + r.started + " · " + (h.error ? "no health log" : "health check " + (h.modifiedAt ? relTime(h.modifiedAt) : "unknown")),
+        "small " + (o.kind === "stale" ? "warn" : "muted")));
+      card.append(fold("run:" + r.id, [el("span", "Details", "small")], b => runDetails(b, r)));
+      return card;
+    }
+    function historyRow(r) {
+      const o = runOutcome(r);
+      const outcome = el("span", o.label, "issuer");
+      outcome.setAttribute("title", r.registryStatus);
+      const summary = [runDot(o, r), el("span", r.name, "label"), el("span", r.host, "host"), outcome];
+      const progress = runProgress(r);
+      if (progress) summary.push(el("span", progress, "meta"));
+      summary.push(el("span", r.started.slice(5, 16), "meta"));
+      return fold("run:" + r.id, summary, b => runDetails(b, r), {className:"task"});
+    }
+    function renderRuns() {
+      const banner = byId("runs-banner");
+      const live = byId("runs-live");
+      const history = byId("runs-history");
+      live.replaceChildren(); history.replaceChildren();
+      banner.hidden = Boolean(snapshot && !snapshot.runsProblem);
+      banner.textContent = !snapshot ? "Run records unavailable." : snapshot.runsProblem || "";
+      if (!snapshot) return;
+      if (!snapshot.runs.length) {
+        live.replaceChildren(el("p", "No runs yet.", "small muted"),
+          el("p", "See run-logs/README.md to add user-launched runs.", "small muted"));
+        return;
+      }
+      const running = snapshot.runs.filter(r => runOutcome(r).label === "Running");
+      if (!running.length) live.append(el("p", "No runs recorded as running.", "small muted"));
+      running.forEach(r => live.append(liveRunCard(r)));
+      const done = snapshot.runs.filter(r => runOutcome(r).label !== "Running");
+      const dated = r => /^\d{4}-\d{2}-\d{2}/.test(r.started) ? r.started.slice(0, 10) : null;
+      groupBy(done, r => dated(r) ? mondayOf(dated(r)) : "0000-unknown").forEach(([monday, runs], i) => {
+        const title = el("span", monday === "0000-unknown" ? "Unknown date" : weekLabel(monday), "period-title");
+        history.append(fold("runs:w:" + monday, [title, el("span", runs.length + " run" + (runs.length === 1 ? "" : "s"), "muted small")], b => {
+          runs.slice().sort((a, b2) => b2.started.localeCompare(a.started)).forEach(r => b.append(historyRow(r)));
+        }, {open: i === 0, className:"period"}));
+      });
+    }
+
+    // ---------- Tabs ----------
+    const TABS = ["office", "tasks", "runs"];
+    function selectTab(name) {
+      for (const t of TABS) {
+        byId("tab-" + t).setAttribute("aria-selected", String(t === name));
+        byId("view-" + t).hidden = t !== name;
+      }
+    }
+    TABS.forEach((t, i) => {
+      byId("tab-" + t).addEventListener("click", () => selectTab(t));
+      byId("tab-" + t).addEventListener("keydown", event => {
+        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+        const next = TABS[(i + (event.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
+        selectTab(next);
+        byId("tab-" + next).focus();
+      });
+    });
+
+    function renderAll() {
+      lastRender = Date.now();
+      const focused = document.activeElement?.id;
+      const displayName = snapshot?.project?.displayName;
+      if (isString(displayName) && displayName !== "Unknown") {
+        byId("brand-name").textContent = displayName;
+        document.title = displayName + " Office";
+      }
+      renderOffice();
+      renderTasks();
+      renderRuns();
+      if (drawerAgent) renderDrawer();
+      if (focused && byId(focused) && document.activeElement !== byId(focused)) byId(focused).focus();
+    }
+
+    // ---------- Feeds ----------
+    function validateOffice(data) {
+      const s = data?.snapshot;
+      if (data?.schemaVersion !== 1 || !isString(data.projectId) || (recordsEnvelope && data.projectId !== recordsEnvelope.projectId) || !isString(data.revision) || !s ||
+          !Array.isArray(s.agents) || !Array.isArray(s.sessions) || !s.stats || !s.coverage ||
+          !["open","week","month","total"].every(k => Number.isInteger(s.stats[k]))) throw new Error("Invalid session feed");
+      for (const a of s.agents) {
+        if (!isString(a.name) || !a.direct || !a.delegated || !Array.isArray(a.current) || !Array.isArray(a.week) || !a.tokens || !a.usage) throw new Error("Invalid agent in session feed");
+      }
+      for (const x of s.sessions) {
+        if (!isString(x.id) || !Array.isArray(x.agents) || !Array.isArray(x.delegations) || !Array.isArray(x.days) || !x.usage) throw new Error("Invalid session in session feed");
+        for (const d of x.delegations) if (!isString(d.id) || !isString(d.agent) || !isString(d.status)) throw new Error("Invalid delegation in session feed");
+      }
+      return data;
+    }
+    const feeds = {
+      records: {url:"/api/status", every:15000, revision:null, at:null, error:null, inflight:false, due:0},
+      office: {url:"/api/office", every:10000, revision:null, at:null, error:null, inflight:false, due:0}
+    };
+    let paused = false;
+    let pollTimer = null;
+    function updateLive() {
+      const errors = Object.entries(feeds).filter(([, f]) => f.error || f.serverError);
+      const dot = byId("live-dot");
+      const text = byId("live-text");
+      if (!hosted) { dot.className = "dot"; text.textContent = "Snapshot"; }
+      else if (paused) { dot.className = "dot"; text.textContent = "Paused"; }
+      else if (errors.length) { dot.className = "dot error"; text.textContent = "Stale"; }
+      else if (feeds.office.at && feeds.records.at) { dot.className = "dot live"; text.textContent = "Live"; }
+      else { dot.className = "dot stale"; text.textContent = "Connecting"; }
+      byId("live-records").textContent = "Records: " + (recordsEnvelope ? (recordsEnvelope.mode === "embedded-snapshot" ? "embedded snapshot, " : "") + "collected " + fmtWhen(recordsEnvelope.collectedAt) : "unavailable");
+      byId("live-office").textContent = "Sessions: " + (office ? "checked " + fmtWhen(feeds.office.collectedAt || office.generatedAt) + (feeds.office.serverError ? " (serving the last good index)" : "") : hosted ? "waiting" : "need the server");
+      const c = office?.coverage;
+      byId("live-coverage").textContent = c ? c.officeSessions + " office sessions (" + c.otherSessions + " others not shown) · since " + (c.since ? fmtWhen(c.since) : "unknown") + (c.building ? " · indexing…" : "") : "";
+      byId("live-errors").textContent = errors.map(([name, f]) => name + ": " + (f.error || "server index refresh failing — " + f.serverError)).join("\n") +
+        (recordsEnvelope?.errors?.length ? "\nRecord source errors: " + recordsEnvelope.errors.map(e => e.path + ": " + e.error).join("; ") : "");
+      byId("live-toggle").hidden = !hosted;
+      byId("live-toggle").textContent = paused ? "Resume updates" : "Pause updates";
+    }
+    function receive(name, data) {
+      const f = feeds[name];
+      if (name === "records") {
+        validateFeed(data);
+        f.at = Date.now();
+        if (data.revision === f.revision && snapshot) return false;
+        f.revision = data.revision;
+        recordsEnvelope = data;
+        snapshot = data.snapshot;
+      } else {
+        validateOffice(data);
+        f.at = Date.now();
+        f.collectedAt = data.collectedAt;
+        f.serverError = data.stale ? (data.error || "index refresh failing") : null;
+        if (data.revision === f.revision && office) return false;
+        f.revision = data.revision;
+        office = data.snapshot;
+      }
+      return true;
+    }
+    async function pollFeed(name) {
+      const f = feeds[name];
+      if (paused || f.inflight) return;
+      f.inflight = true;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      try {
+        const response = await fetch(f.url, {cache:"no-store", credentials:"same-origin", signal:controller.signal});
+        const data = await response.json();
+        if (!response.ok) throw new Error("HTTP " + response.status + (data?.error ? ": " + data.error : ""));
+        const changed = receive(name, data);
+        f.error = null;
+        if (changed && !paused) renderAll();
+      } catch (error) {
+        f.error = error.name === "AbortError" ? "request timed out" : error.message;
+      } finally {
+        clearTimeout(timeout);
+        f.inflight = false;
+        f.due = Date.now() + (f.error ? 5000 : f.every);
+        updateLive();
+      }
+    }
+    let lastRender = Date.now();
+    function tick() {
+      if (paused) return;
+      if (Date.now() - lastRender > 60000) renderAll();
+      for (const [name, f] of Object.entries(feeds)) if (Date.now() >= f.due && !f.inflight) void pollFeed(name);
+      pollTimer = setTimeout(tick, 1000);
+    }
+    byId("live-toggle").addEventListener("click", () => {
+      paused = !paused;
+      clearTimeout(pollTimer);
+      if (!paused) { for (const f of Object.values(feeds)) f.due = 0; tick(); }
+      updateLive();
+    });
+
+    // ---------- Init ----------
+    try {
+      const embedded = JSON.parse(byId("snapshot").textContent);
+      if (embedded) { validateFeed(embedded); recordsEnvelope = embedded; snapshot = embedded.snapshot; }
+      else embeddedProblem = "No embedded snapshot. Regenerate with: python3 -B office/dashboard/server.py --embed-snapshot";
+    } catch (error) {
+      embeddedProblem = "Embedded snapshot invalid (" + error.message + ").";
+    }
+    renderAll();
+    updateLive();
+    if (hosted) tick();
+  </script>
+</body>
+</html>

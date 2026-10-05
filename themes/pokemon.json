@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "pokemon",
+  "label": "Pokémon",
+  "note": "Pokémon names are owned by Nintendo / Creatures / GAME FREAK and are used only as fan labels; no artwork, affiliation, or endorsement is implied.",
+  "names": {
+    "lead": "bidoof",
+    "guardian": "abra",
+    "builder": "dratini",
+    "reviewer": "ivysaur",
+    "analyst": "furret",
+    "navigator": "eevee",
+    "researcher": "lapras",
+    "curator": "joltik",
+    "frontdesk": "rotom"
+  }
+}
