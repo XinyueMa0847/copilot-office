@@ -1,0 +1,3 @@
+03:20 dense-v2 [queries=2000] up 80m (capture -) state=finished
+  updates=v1@02:10 v2@02:20 v3@02:30 v4@02:40 v5@02:50 v6@03:00 v7@03:10 v8@03:20
+  traj started=2000 ended=1997 failed=3

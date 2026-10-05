@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "project_id": "tiny-search",
+  "outputs": {
+    "bidoof": {
+      "relative_path": ".github/agents/bidoof.agent.md",
+      "role_profile": "office-lead",
+      "source_sha256": "af3edd80826778ecbf161e33c24f22fb2bbd9f6883b9d66704329b5a974e2c76",
+      "sha256": "37104e004c157ac88dc6b96e522d20d931053899854df9b669e40ee3ecb5b0a4"
+    },
+    "abra": {
+      "relative_path": ".github/agents/abra.agent.md",
+      "role_profile": "office-guardian",
+      "source_sha256": "7a7d889da7e3e787cb017f5df180828b02ea7e9944a7ca61c1c5c6e2af2931cc",
+      "sha256": "074fb1ad8a830e2b602d0b4f8009168839a583f1f2ecdf756fd29309b87c965f"
+    },
+    "dratini": {
+      "relative_path": ".github/agents/dratini.agent.md",
+      "role_profile": "office-builder",
+      "source_sha256": "c99349235ca42289777534016abc01226b525962fc2df75fe8136b7c763523ef",
+      "sha256": "0e2d33fdd06ce18920c82159a1e6696b73aea5dc7eba7d9ddb43547ae118b327"
+    },
+    "ivysaur": {
+      "relative_path": ".github/agents/ivysaur.agent.md",
+      "role_profile": "office-reviewer",
+      "source_sha256": "4983f02bf92be3ed3d2c24ca5400a025fcaaf42c77c2f0bc0c5d497eaad91e64",
+      "sha256": "a30afd6830c0452c86ba74b4cdb9b6fe0d516fcbc4a9d8f39a1ae1ea3f54b01b"
+    },
+    "furret": {
+      "relative_path": ".github/agents/furret.agent.md",
+      "role_profile": "office-analyst",
+      "source_sha256": "5ad62386d1151d0c99a35abf968d0a23bd84a2cd0ac184fb70019f0fb76d9072",
+      "sha256": "47897e69c4703fbb1f43e63128fa327a1b853b6829153602a57c52e9c01b1c50"
+    },
+    "eevee": {
+      "relative_path": ".github/agents/eevee.agent.md",
+      "role_profile": "office-navigator",
+      "source_sha256": "9040e2c303744a4ccd237f0174f29a264dae69865b7b3114f836338b7430f121",
+      "sha256": "30e3f30bbf2f15f619c322408cf097f9e74cc0f3e3deed76c2c7f268f8fb5a02"
+    },
+    "lapras": {
+      "relative_path": ".github/agents/lapras.agent.md",
+      "role_profile": "office-researcher",
+      "source_sha256": "472dc302021d577be339d5ecd241973b3b8d543e636126d83bde1cd566bbb4e1",
+      "sha256": "9e3b46731183861075a68042cbedc13ce998fc391aa6c7337e5f6ea6c230a1d2"
+    },
+    "joltik": {
+      "relative_path": ".github/agents/joltik.agent.md",
+      "role_profile": "office-curator",
+      "source_sha256": "e032e0a4bbd8c5dbd05d4c4ef549e2bd85f637d0942cc31696a9a32252bd1314",
+      "sha256": "bea347f4340bc61207dd049a3cb543839751c2cc318e809c27f31a42c1bc0c3f"
+    }
+  }
+}

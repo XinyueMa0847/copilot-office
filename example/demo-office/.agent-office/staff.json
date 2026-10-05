@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "project_id": "tiny-search",
+  "theme": "pokemon",
+  "employees": [
+    {
+      "employee_id": "lead",
+      "role_profile": "office-lead",
+      "profile": "bidoof",
+      "name": "bidoof",
+      "title": "Manager",
+      "aliases": [
+        "lead",
+        "manager"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "guardian",
+      "role_profile": "office-guardian",
+      "profile": "abra",
+      "name": "abra",
+      "title": "Counselor",
+      "aliases": [
+        "guardian",
+        "counselor"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "builder",
+      "role_profile": "office-builder",
+      "profile": "dratini",
+      "name": "dratini",
+      "title": "Builder",
+      "aliases": [
+        "builder"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "reviewer",
+      "role_profile": "office-reviewer",
+      "profile": "ivysaur",
+      "name": "ivysaur",
+      "title": "Reviewer",
+      "aliases": [
+        "reviewer"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "analyst",
+      "role_profile": "office-analyst",
+      "profile": "furret",
+      "name": "furret",
+      "title": "Results Analyst",
+      "aliases": [
+        "analyst",
+        "results analyst"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "navigator",
+      "role_profile": "office-navigator",
+      "profile": "eevee",
+      "name": "eevee",
+      "title": "Code Reader",
+      "aliases": [
+        "navigator",
+        "code reader"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "researcher",
+      "role_profile": "office-researcher",
+      "profile": "lapras",
+      "name": "lapras",
+      "title": "Researcher",
+      "aliases": [
+        "researcher"
+      ],
+      "sessions": [],
+      "assignments": []
+    },
+    {
+      "employee_id": "curator",
+      "role_profile": "office-curator",
+      "profile": "joltik",
+      "name": "joltik",
+      "title": "Docs Curator",
+      "aliases": [
+        "curator",
+        "docs curator"
+      ],
+      "sessions": [],
+      "assignments": []
+    }
+  ]
+}

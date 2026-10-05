@@ -1,0 +1,3 @@
+22:20 bm25-baseline [queries=2000] up 80m (capture -) state=finished
+  updates=v1@21:10 v2@21:20 v3@21:30 v4@21:40 v5@21:50 v6@22:00 v7@22:10 v8@22:20
+  traj started=2000 ended=2000 failed=0

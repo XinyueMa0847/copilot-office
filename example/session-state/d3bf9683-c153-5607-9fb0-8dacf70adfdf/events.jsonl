@@ -1,0 +1,16 @@
+{"type": "session.start", "data": {"sessionId": "d3bf9683-c153-5607-9fb0-8dacf70adfdf", "selectedModel": "demo-model"}, "id": "d3bf9683-0", "timestamp": "2026-08-31T17:00:00.000Z", "parentId": null}
+{"type": "subagent.selected", "data": {"agentName": "bidoof"}, "id": "d3bf9683-1", "timestamp": "2026-08-31T17:00:00.000Z", "parentId": null}
+{"type": "user.message", "data": {"content": "Here is the goal: measure how well Tiny Search ranks results on our 2,000-query test set.", "delivery": "idle"}, "id": "d3bf9683-2", "timestamp": "2026-08-31T17:02:00.000Z", "parentId": null}
+{"type": "assistant.turn_start", "data": {"turnId": "2"}, "id": "d3bf9683-3", "timestamp": "2026-08-31T17:02:00.000Z", "parentId": null}
+{"type": "assistant.turn_end", "data": {"turnId": "2"}, "id": "d3bf9683-4", "timestamp": "2026-08-31T17:03:00.000Z", "parentId": null}
+{"type": "session.usage_checkpoint", "data": {"totalNanoAiu": 40000000000, "totalPremiumRequests": 1}, "id": "d3bf9683-5", "timestamp": "2026-08-31T17:03:00.000Z", "parentId": null}
+{"type": "tool.execution_start", "data": {"toolName": "task", "toolCallId": "call-6", "arguments": {"name": "find-standard-search-metrics", "description": "Find standard search metrics", "agent_type": "lapras", "mode": "background", "prompt": "List common ranking metrics (recall@k, MRR, nDCG) with one-line definitions and sources."}}, "id": "d3bf9683-6", "timestamp": "2026-08-31T17:04:00.000Z", "parentId": null}
+{"type": "subagent.started", "data": {"toolCallId": "call-6", "agentName": "lapras", "agentDisplayName": "lapras", "agentType": "lapras", "executionMode": "background", "model": "demo-model"}, "id": "d3bf9683-7", "timestamp": "2026-08-31T17:04:00.000Z", "parentId": null, "agentId": "bf39714c-935b-544d-9c33-5e1244b6430c"}
+{"type": "subagent.configured", "data": {"model": "demo-model", "reasoningEffort": "medium", "contextTier": "default"}, "id": "d3bf9683-8", "timestamp": "2026-08-31T17:04:00.000Z", "parentId": null, "agentId": "bf39714c-935b-544d-9c33-5e1244b6430c"}
+{"type": "subagent.completed", "data": {"toolCallId": "call-6", "agentName": "lapras", "model": "demo-model", "durationMs": 1080000, "totalTokens": 21000, "totalToolCalls": 14}, "id": "d3bf9683-9", "timestamp": "2026-08-31T17:22:00.000Z", "parentId": null, "agentId": "bf39714c-935b-544d-9c33-5e1244b6430c"}
+{"type": "session.usage_checkpoint", "data": {"totalNanoAiu": 92500000000, "totalPremiumRequests": 4}, "id": "d3bf9683-10", "timestamp": "2026-08-31T17:22:00.000Z", "parentId": null}
+{"type": "user.message", "data": {"content": "Record the goal and metrics in the project state.", "delivery": "idle"}, "id": "d3bf9683-11", "timestamp": "2026-08-31T17:24:00.000Z", "parentId": null}
+{"type": "assistant.turn_start", "data": {"turnId": "11"}, "id": "d3bf9683-12", "timestamp": "2026-08-31T17:24:00.000Z", "parentId": null}
+{"type": "assistant.turn_end", "data": {"turnId": "11"}, "id": "d3bf9683-13", "timestamp": "2026-08-31T17:25:00.000Z", "parentId": null}
+{"type": "session.usage_checkpoint", "data": {"totalNanoAiu": 117500000000, "totalPremiumRequests": 5}, "id": "d3bf9683-14", "timestamp": "2026-08-31T17:25:00.000Z", "parentId": null}
+{"type": "session.shutdown", "data": {"totalNanoAiu": 117500000000, "shutdownType": "routine"}, "id": "d3bf9683-15", "timestamp": "2026-08-31T17:27:00.000Z", "parentId": null}

@@ -1,0 +1,7 @@
+{"type": "session.start", "data": {"sessionId": "fb25d9b5-113d-5e14-8e0b-617a42c5234c", "selectedModel": "demo-model"}, "id": "fb25d9b5-0", "timestamp": "2026-10-05T22:39:00.000Z", "parentId": null}
+{"type": "subagent.selected", "data": {"agentName": "abra"}, "id": "fb25d9b5-1", "timestamp": "2026-10-05T22:39:00.000Z", "parentId": null}
+{"type": "user.message", "data": {"content": "Is 2,000 queries enough to see a 2-point recall difference?", "delivery": "idle"}, "id": "fb25d9b5-2", "timestamp": "2026-10-05T22:41:00.000Z", "parentId": null}
+{"type": "assistant.turn_start", "data": {"turnId": "2"}, "id": "fb25d9b5-3", "timestamp": "2026-10-05T22:41:00.000Z", "parentId": null}
+{"type": "assistant.turn_end", "data": {"turnId": "2"}, "id": "fb25d9b5-4", "timestamp": "2026-10-05T22:42:00.000Z", "parentId": null}
+{"type": "session.usage_checkpoint", "data": {"totalNanoAiu": 15000000000, "totalPremiumRequests": 1}, "id": "fb25d9b5-5", "timestamp": "2026-10-05T22:42:00.000Z", "parentId": null}
+{"type": "session.shutdown", "data": {"totalNanoAiu": 15000000000, "shutdownType": "routine"}, "id": "fb25d9b5-6", "timestamp": "2026-10-05T22:44:00.000Z", "parentId": null}

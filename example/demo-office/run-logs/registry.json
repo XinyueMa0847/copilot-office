@@ -1,0 +1,37 @@
+{
+  "run-0001": {
+    "name": "bm25-baseline",
+    "host": "node-a",
+    "rid": "demo-run-0001",
+    "started": "2026-09-30 21:00 UTC",
+    "attempt": 1,
+    "setup": "bm25-baseline: 2,000 queries, index snapshot S1, recall@10 and latency.",
+    "status": "completed"
+  },
+  "run-0002": {
+    "name": "dense-v1",
+    "host": "node-b",
+    "rid": "demo-run-0002",
+    "started": "2026-09-30 21:05 UTC",
+    "attempt": 1,
+    "setup": "dense-v1: 2,000 queries, index snapshot S1, recall@10 and latency.",
+    "status": "failed: out of memory while encoding batch 3"
+  },
+  "run-0003": {
+    "name": "dense-v2",
+    "host": "node-b",
+    "rid": "demo-run-0003",
+    "started": "2026-10-01 02:00 UTC",
+    "attempt": 1,
+    "setup": "dense-v2: 2,000 queries, index snapshot S1, recall@10 and latency.",
+    "status": "completed"
+  },
+  "run-0004": {
+    "name": "hybrid-v1",
+    "host": "node-a",
+    "rid": "demo-run-0004",
+    "started": "2026-10-05 21:29 UTC",
+    "attempt": 1,
+    "setup": "hybrid-v1: 2,000 queries, index snapshot S1, recall@10 and latency."
+  }
+}

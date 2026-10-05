@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "timezone": "UTC",
+  "plan_aic": 300000,
+  "aic_per_log_unit": 40,
+  "calibration": {
+    "used_aic": null,
+    "log_units": null,
+    "measured_at": "2026-10-05T23:09:00.000Z",
+    "since": "2026-10-05T23:09:00.000Z",
+    "note": "demo values"
+  },
+  "frontdesk": {
+    "name": "rotom",
+    "title": "Front Desk"
+  }
+}

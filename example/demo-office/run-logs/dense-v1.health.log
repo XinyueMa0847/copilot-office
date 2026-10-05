@@ -1,0 +1,3 @@
+21:25 dense-v1 [queries=2000] up 20m (capture -) state=failed
+  updates=v1@21:15 v2@21:25
+  traj started=410 ended=410 failed=0

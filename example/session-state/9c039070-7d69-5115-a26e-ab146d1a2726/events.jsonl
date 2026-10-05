@@ -1,0 +1,7 @@
+{"type": "session.start", "data": {"sessionId": "9c039070-7d69-5115-a26e-ab146d1a2726", "selectedModel": "demo-model"}, "id": "9c039070-0", "timestamp": "2026-10-05T22:19:00.000Z", "parentId": null}
+{"type": "subagent.selected", "data": {"agentName": "rotom"}, "id": "9c039070-1", "timestamp": "2026-10-05T22:19:00.000Z", "parentId": null}
+{"type": "user.message", "data": {"content": "Where was the session where we compared recall?", "delivery": "idle"}, "id": "9c039070-2", "timestamp": "2026-10-05T22:21:00.000Z", "parentId": null}
+{"type": "assistant.turn_start", "data": {"turnId": "2"}, "id": "9c039070-3", "timestamp": "2026-10-05T22:21:00.000Z", "parentId": null}
+{"type": "assistant.turn_end", "data": {"turnId": "2"}, "id": "9c039070-4", "timestamp": "2026-10-05T22:22:00.000Z", "parentId": null}
+{"type": "session.usage_checkpoint", "data": {"totalNanoAiu": 5000000000, "totalPremiumRequests": 1}, "id": "9c039070-5", "timestamp": "2026-10-05T22:22:00.000Z", "parentId": null}
+{"type": "session.shutdown", "data": {"totalNanoAiu": 5000000000, "shutdownType": "routine"}, "id": "9c039070-6", "timestamp": "2026-10-05T22:24:00.000Z", "parentId": null}

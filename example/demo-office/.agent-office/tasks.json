@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "project_id": "tiny-search",
+  "tasks": [
+    {
+      "task_id": "TS-001",
+      "title": "Build the benchmark harness",
+      "owner_employee_id": "lead",
+      "owner_name": "bidoof",
+      "status": "completed",
+      "requested_at": "2026-09-30T18:00:00.000Z",
+      "sessions": [],
+      "delivery": "Harness merged with tests; reviewed."
+    },
+    {
+      "task_id": "TS-002",
+      "title": "Compare rankers",
+      "owner_employee_id": "lead",
+      "owner_name": "bidoof",
+      "status": "in_progress",
+      "requested_at": "2026-10-03T20:00:00.000Z",
+      "sessions": [],
+      "next_action": "Analyze the hybrid run when it finishes."
+    },
+    {
+      "task_id": "TS-003",
+      "title": "Benchmark runbook",
+      "owner_employee_id": "lead",
+      "owner_name": "bidoof",
+      "status": "completed",
+      "requested_at": "2026-10-04T17:00:00.000Z",
+      "sessions": []
+    }
+  ]
+}

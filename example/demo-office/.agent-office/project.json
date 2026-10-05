@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project_id": "tiny-search",
+  "display_name": "Tiny Search",
+  "status": "active",
+  "records": {
+    "state": "PROJECT_STATE.md",
+    "decisions": "DECISIONS.md",
+    "staff": "staff.json",
+    "tasks": "tasks.json"
+  },
+  "repository": {
+    "status": "not_configured",
+    "readiness_scope": ""
+  }
+}
